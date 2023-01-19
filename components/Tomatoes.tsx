@@ -132,59 +132,63 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 	return (
 		<div className="col-sm">
 			<h3>Tomatoes</h3>
-			<div id="list-example" className="list-group">
-				{groupedTomatoes.map((gt, idx) => {
-					return (
-						<div className="card" key={idx}>
-							<div className="card-body">
-								<h5 className="card-title">{gt.day}</h5>
-								<h6 className="card-subtitle mb-2 text-muted">
-									{gt.count}
-									{Object.keys(gt.contextCount).map((key, idx2) => {
-										return (
-											<span key={idx2} className="badge bg-secondary ms-1">
-												{contexts[key]} : {gt.contextCount[key]}
-											</span>
-										);
-									})}
-								</h6>
-								<div className="card-text">
-									{gt.tomatoes.map((tomato, idx2) => {
-										return (
-											<div
-												className="list-group-item d-flex justify-content-between"
-												key={idx2}
-											>
-												<span className="d-flex align-items-center w-50">
-													{tomato.description}
+			{groupedTomatoes.length > 0 ? (
+				<div id="list-example" className="list-group">
+					{groupedTomatoes.map((gt, idx) => {
+						return (
+							<div className="card" key={idx}>
+								<div className="card-body">
+									<h5 className="card-title">{gt.day}</h5>
+									<h6 className="card-subtitle mb-2 text-muted">
+										{gt.count}
+										{Object.keys(gt.contextCount).map((key, idx2) => {
+											return (
+												<span key={idx2} className="badge bg-secondary ms-1">
+													{contexts[key]} : {gt.contextCount[key]}
 												</span>
-												<span className="badge bg-secondary ms-1 h-100">
-													{contexts[tomato.contextId]}
-												</span>
-												<div>
-													{selectedContext ? (
-														<FontAwesomeIcon
-															className="m-1"
-															icon={faObjectUngroup}
-															role="button"
-															onClick={() => {
-																reAssignContext({
-																	...tomato,
-																	contextId: selectedContext.id
-																});
-															}}
-														/>
-													) : null}
+											);
+										})}
+									</h6>
+									<div className="card-text">
+										{gt.tomatoes.map((tomato, idx2) => {
+											return (
+												<div
+													className="list-group-item d-flex justify-content-between"
+													key={idx2}
+												>
+													<span className="d-flex align-items-center w-50">
+														{tomato.description}
+													</span>
+													<span className="badge bg-secondary ms-1 h-100">
+														{contexts[tomato.contextId]}
+													</span>
+													<div>
+														{selectedContext ? (
+															<FontAwesomeIcon
+																className="m-1"
+																icon={faObjectUngroup}
+																role="button"
+																onClick={() => {
+																	reAssignContext({
+																		...tomato,
+																		contextId: selectedContext.id
+																	});
+																}}
+															/>
+														) : null}
+													</div>
 												</div>
-											</div>
-										);
-									})}
+											);
+										})}
+									</div>
 								</div>
 							</div>
-						</div>
-					);
-				})}
-			</div>
+						);
+					})}
+				</div>
+			) : (
+				<p className="mt-3 text-center">No tomatoes</p>
+			)}
 		</div>
 	);
 };

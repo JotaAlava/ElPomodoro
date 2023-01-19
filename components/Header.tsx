@@ -1,11 +1,13 @@
 import React from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import { useUser } from '@auth0/nextjs-auth0/client';
 
 const Header: React.FC = () => {
 	const router = useRouter();
 	const isActive: (pathname: string) => boolean = (pathname) =>
 		router.pathname === pathname;
+	const { user } = useUser();
 
 	return (
 		<header>
@@ -85,26 +87,42 @@ const Header: React.FC = () => {
 										Home
 									</a>
 								</li>
-								<li className="nav-item">
-									<a
-										href="/tomato"
-										className={
-											isActive('/tomato') ? 'nav-link active' : 'nav-link'
-										}
-									>
-										Tomato
-									</a>
-								</li>
-								<li className="nav-item">
-									<a
-										href="/context"
-										className={
-											isActive('/context') ? 'nav-link active' : 'nav-link'
-										}
-									>
-										Context
-									</a>
-								</li>
+								{!user && (
+									<li className="nav-item">
+										<a className="nav-link" href="/api/auth/login">
+											Login
+										</a>
+									</li>
+								)}
+								{user && (
+									<>
+										<li className="nav-item">
+											<a
+												href="/tomato"
+												className={
+													isActive('/tomato') ? 'nav-link active' : 'nav-link'
+												}
+											>
+												Tomato
+											</a>
+										</li>
+										<li className="nav-item">
+											<a
+												href="/context"
+												className={
+													isActive('/context') ? 'nav-link active' : 'nav-link'
+												}
+											>
+												Context
+											</a>
+										</li>
+										<li className="nav-item">
+											<a className="nav-link" href="/api/auth/logout">
+												Logout
+											</a>
+										</li>
+									</>
+								)}
 							</ul>
 						</div>
 					</div>
@@ -126,3 +144,6 @@ const Header: React.FC = () => {
 };
 
 export default Header;
+function useAuth0(): { isAuthenticated: any } {
+	throw new Error('Function not implemented.');
+}

@@ -34,22 +34,26 @@ const Todo: React.FC<TodoProps> = (props) => {
 		<div className="col-sm">
 			<h3>TODOs</h3>
 			<NewRow field="todo" onSubmit={onSave}></NewRow>
-			<div id="list-example" className="list-group">
-				{loadedTodos.map((todo, idx) => {
-					return (
-						<a
-							key={idx}
-							className="list-group-item list-group-item-action"
-							href="#"
-							onClick={() => {
-								complete(todo);
-							}}
-						>
-							{todo.description}
-						</a>
-					);
-				})}
-			</div>
+			{loadedTodos.length > 0 ? (
+				<div id="list-example" className="list-group">
+					{loadedTodos.map((todo, idx) => {
+						return (
+							<a
+								key={idx}
+								className="list-group-item list-group-item-action"
+								href="#"
+								onClick={() => {
+									complete(todo);
+								}}
+							>
+								{todo.description}
+							</a>
+						);
+					})}
+				</div>
+			) : (
+				<p className="mt-3 text-center">All done!</p>
+			)}
 		</div>
 	);
 };
