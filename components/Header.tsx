@@ -10,6 +10,7 @@ const Header: React.FC = () => {
 	return (
 		<header>
 			<Head key={'favicon'}>
+				<title>ElPomodoro</title>
 				<link
 					rel="apple-touch-icon"
 					sizes="180x180"
