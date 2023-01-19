@@ -155,7 +155,7 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 												className="list-group-item d-flex justify-content-between"
 												key={idx2}
 											>
-												<span className="d-flex justify-content-start align-items-center">
+												<span className="d-flex align-items-center w-50">
 													{tomato.description}
 												</span>
 												<span className="badge bg-secondary ms-1 h-100">
