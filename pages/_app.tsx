@@ -1,4 +1,6 @@
-import 'bootstrap/dist/css/bootstrap.css';
+// import 'bootstrap/dist/css/bootstrap.css';
+// import '../css/main.css';
+import '../scss/main.scss';
 
 import { AppProps } from 'next/app';
 import { UserProvider } from '@auth0/nextjs-auth0/client';

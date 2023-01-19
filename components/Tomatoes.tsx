@@ -140,22 +140,22 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 								<h5 className="card-title">{gt.day}</h5>
 								<h6 className="card-subtitle mb-2 text-muted">
 									{gt.count}
-									{Object.keys(gt.contextCount).map((key) => {
+									{Object.keys(gt.contextCount).map((key, idx2) => {
 										return (
-											<span className="badge bg-secondary ms-1">
+											<span key={idx2} className="badge bg-secondary ms-1">
 												{contexts[key]} : {gt.contextCount[key]}
 											</span>
 										);
 									})}
 								</h6>
-								<p className="card-text">
-									{gt.tomatoes.map((tomato, idx) => {
+								<div className="card-text">
+									{gt.tomatoes.map((tomato, idx2) => {
 										return (
-											<div className="list-group-item d-flex justify-content-between">
-												<span
-													key={idx}
-													className="d-flex justify-content-start align-items-center"
-												>
+											<div
+												className="list-group-item d-flex justify-content-between"
+												key={idx2}
+											>
+												<span className="d-flex justify-content-start align-items-center">
 													{tomato.description}
 												</span>
 												<span className="badge bg-secondary ms-1 h-100">
@@ -179,7 +179,7 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 											</div>
 										);
 									})}
-								</p>
+								</div>
 							</div>
 						</div>
 					);

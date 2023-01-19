@@ -19,9 +19,12 @@ const ContextsList: React.FC<ContextsListProps> = ({ contexts, edit, del }) => {
 
 	return contexts.length > 0 ? (
 		<div className="list-group">
-			{contexts.map((context) => {
+			{contexts.map((context, idx) => {
 				return (
-					<div className="list-group-item d-flex justify-content-between">
+					<div
+						className="list-group-item d-flex justify-content-between"
+						key={idx}
+					>
 						<span className="d-flex justify-content-start align-items-center">
 							{ctxToDelete[context.id] ? (
 								<del>{context.description}</del>

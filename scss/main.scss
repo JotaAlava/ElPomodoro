@@ -1,0 +1,40 @@
+// :root {
+// 	--primary: #009c68;
+// 	--bs-white-rgb: #fff9ec;
+// 	--bs-body-color: #fff9ec;
+// 	--bs-body-bg: #4d4637;
+// 	--bs-dark-rgb: #4d4637;
+// 	--bs-card-bg: red;
+// 	--bs-card-color: red;
+// }
+
+$white: #4d4637;
+
+$theme-colors: (
+	'light': #fff9ec,
+	'dark': #4d4637,
+	'primary': #009574,
+	'secondary': #f1c40f,
+	'info': #da2048,
+	'success': #00cea8,
+	'warning': #ffc96d,
+	'danger': #fe015f
+);
+
+$component-active-bg: #009574;
+$nav-link-color: #009574;
+$navbar-dark-active-color: #fff9ec;
+$navbar-dark-brand-color: #fff9ec;
+$body-color: #fff9ec;
+$list-group-color: #fff9ec;
+$list-group-border-color: #fff9ec;
+$link-color: #009574;
+$card-border-color: #fff9ec;
+$input-group-addon-bg: #f1c40f;
+$input-group-addon-color: #4d4637;
+
+@import '../node_modules/bootstrap/scss/bootstrap.scss';
+
+.text-muted {
+	color: #b3aa99 !important;
+}
