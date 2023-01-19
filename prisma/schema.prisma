@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// ENSURE THE DATABASE IS ALWAYS SET TO GMT TIMEZONE WITH: SET TIME ZONE 'GMT';
+// CHECK WITH: SHOW timezone and SELECT NOW();
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Context {
+  id              String   @id @default(cuid())
+  description     String
+  deleted         Boolean  @default(false)
+  tomato          Tomato[]
+  authorId        String
+}
+
+model Tomato {
+  id          String   @id @default(cuid())
+  description String
+  deleted     Boolean  @default(false)
+  authorId    String
+  Context     Context? @relation(fields: [contextId], references: [id])
+  contextId   String?
+  finished    DateTime  @default(now()) @db.Timestamptz(3)
+}
+
+model Todo {
+  id          String @id @default(cuid())
+  description String
+  authorId    String
+}
