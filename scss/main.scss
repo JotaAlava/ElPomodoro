@@ -17,7 +17,7 @@ $theme-colors: (
 	'secondary': #f1c40f,
 	'info': #da2048,
 	'success': #00cea8,
-	'warning': #ffc96d,
+	'warning': #f1c40f,
 	'danger': #fe015f
 );
 
@@ -30,7 +30,7 @@ $list-group-color: #fff9ec;
 $list-group-border-color: #fff9ec;
 $link-color: #009574;
 $card-border-color: #fff9ec;
-$input-group-addon-bg: #f1c40f;
+$input-group-addon-bg: #00cea8;
 $input-group-addon-color: #4d4637;
 
 @import '../node_modules/bootstrap/scss/bootstrap.scss';

@@ -23,6 +23,7 @@
 		"@prisma/client": "^4.9",
 		"bootstrap": "^5.2.3",
 		"eslint-config-next": "^13.0.6",
+		"js-cookie": "^3.0.1",
 		"next": "^13.0.6",
 		"next-auth": "^4.18.3",
 		"next-validations": "^0.3.1",
