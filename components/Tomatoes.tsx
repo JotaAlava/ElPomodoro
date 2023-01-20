@@ -153,29 +153,38 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 										{gt.tomatoes.map((tomato, idx2) => {
 											return (
 												<div
-													className="list-group-item d-flex justify-content-between"
+													className="list-group-item d-flex flex-wrap"
 													key={idx2}
 												>
-													<span className="d-flex align-items-center w-50">
-														{tomato.description}
-													</span>
-													<span className="badge bg-secondary ms-1 h-100">
-														{contexts[tomato.contextId]}
-													</span>
-													<div>
-														{selectedContext ? (
-															<FontAwesomeIcon
-																className="m-1"
-																icon={faObjectUngroup}
-																role="button"
-																onClick={() => {
-																	reAssignContext({
-																		...tomato,
-																		contextId: selectedContext.id
-																	});
-																}}
-															/>
-														) : null}
+													<div className="d-flex justify-content-between w-100">
+														<span className="d-flex align-items-center w-75">
+															<strong>
+																{tomato.finished.toLocaleTimeString()}
+															</strong>
+														</span>
+														<span className="badge bg-secondary ms-1 h-100">
+															{contexts[tomato.contextId]}
+														</span>
+													</div>
+													<div className="d-flex justify-content-between w-100">
+														<span className="d-flex align-items-center w-75">
+															{tomato.description}
+														</span>
+														<div>
+															{selectedContext ? (
+																<FontAwesomeIcon
+																	className="m-1"
+																	icon={faObjectUngroup}
+																	role="button"
+																	onClick={() => {
+																		reAssignContext({
+																			...tomato,
+																			contextId: selectedContext.id
+																		});
+																	}}
+																/>
+															) : null}
+														</div>
 													</div>
 												</div>
 											);

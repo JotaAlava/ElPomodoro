@@ -3,16 +3,19 @@ import Cookies from 'js-cookie';
 import Head from 'next/head';
 
 const clockify = (timerValue) => {
+	timerValue = timerValue || PomodoroTimer.Work;
 	let minutes: any = Math.floor(timerValue / 60);
 	let seconds: any = timerValue - minutes * 60;
 	minutes = minutes < 10 ? '0' + minutes : minutes;
-	seconds = seconds < 10 ? '0' + seconds : seconds;
+	seconds = seconds < 10 ? '0' + Math.trunc(seconds) : Math.trunc(seconds);
 	return `${minutes}:${seconds}`;
 };
 
 enum PomodoroTimer {
 	Cookie = 'elPomodoroTimer',
 	Sound = 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
+	WorkMode = 'Work',
+	BreakMode = 'Break',
 	// In Seconds....
 	Work = 1500,
 	ShortBreak = 300,
@@ -20,12 +23,10 @@ enum PomodoroTimer {
 }
 
 const initialState = {
-	isRunning: false,
+	mode: 'Welcome. Ready to work?',
+	started: undefined,
 	// In seconds...
-	time: PomodoroTimer.Work,
-	workLength: PomodoroTimer.Work,
-	shortBreakLength: PomodoroTimer.ShortBreak,
-	longBreakLength: PomodoroTimer.LongBreak
+	sessionLength: PomodoroTimer.Work
 };
 
 const TomatoTimer: React.FC = (props) => {
@@ -39,11 +40,13 @@ const TomatoTimer: React.FC = (props) => {
 		loadCookieState() || initialState
 	);
 
-	const start = () => {
+	const start = (length, mode) => {
 		const newState = {
 			...timerState,
-			isRunning: true,
-			time: timerState.workLength
+			time: length,
+			sessionLength: length,
+			started: new Date(),
+			mode
 		};
 
 		Cookies.set(PomodoroTimer.Cookie, JSON.stringify(newState));
@@ -51,10 +54,19 @@ const TomatoTimer: React.FC = (props) => {
 		setTimerState(newState);
 	};
 
-	const pause = () => {
+	const resume = () => {
+		const subtractSeconds = (date, seconds) => {
+			date.setSeconds(date.getSeconds() - seconds);
+
+			return date;
+		};
+
 		const newState = {
 			...timerState,
-			isRunning: !timerState.isRunning
+			started: subtractSeconds(
+				new Date(),
+				timerState.sessionLength - timerState.time
+			)
 		};
 
 		Cookies.set(PomodoroTimer.Cookie, JSON.stringify(newState));
@@ -65,8 +77,7 @@ const TomatoTimer: React.FC = (props) => {
 	const end = () => {
 		const newState = {
 			...timerState,
-			isRunning: false,
-			time: timerState.workLength
+			started: undefined
 		};
 
 		Cookies.set(PomodoroTimer.Cookie, JSON.stringify(newState));
@@ -74,12 +85,21 @@ const TomatoTimer: React.FC = (props) => {
 		setTimerState(newState);
 	};
 
+	const secondsSince = (started) => {
+		const x = new Date(started);
+		const y = new Date();
+		const seconds = Math.abs(x.getTime() - y.getTime()) / 1000;
+		return Math.trunc(seconds);
+	};
+
 	useEffect(() => {
 		const interval = setInterval(() => {
-			if (timerState.isRunning) {
+			if (timerState.started) {
+				const seconds = secondsSince(timerState.started);
+
 				const newState = {
 					...timerState,
-					time: timerState.time - 1
+					time: timerState.sessionLength - seconds
 				};
 
 				if (newState.time <= 0) {
@@ -104,16 +124,40 @@ const TomatoTimer: React.FC = (props) => {
 			</Head>
 			<h1 className="display-1">{clockify(timerState.time)}</h1>
 			<audio id="beep" src={PomodoroTimer.Sound.toString()} preload="auto" />
-			<p className="lead">Work</p>
-			<button type="submit" className="btn btn-primary" onClick={start}>
+			<p className="lead">{timerState.mode}</p>
+			<button
+				type="submit"
+				className="btn btn-primary"
+				onClick={() => start(PomodoroTimer.Work, PomodoroTimer.WorkMode)}
+			>
 				Start
-			</button>
-			<button type="submit" className="btn btn-warning ms-2" onClick={pause}>
-				{timerState.isRunning ? 'Pause' : 'Play'}
 			</button>
 			<button type="submit" className="btn btn-primary ms-2" onClick={end}>
 				Stop
 			</button>
+			<div className="pt-2">
+				<button type="submit" className="btn btn-warning ms-2" onClick={resume}>
+					Resume
+				</button>
+				<button
+					type="submit"
+					className="btn btn-warning ms-2"
+					onClick={() =>
+						start(PomodoroTimer.ShortBreak, PomodoroTimer.BreakMode)
+					}
+				>
+					Short Break
+				</button>
+				<button
+					type="submit"
+					className="btn btn-warning ms-2"
+					onClick={() =>
+						start(PomodoroTimer.LongBreak, PomodoroTimer.BreakMode)
+					}
+				>
+					Long Break
+				</button>
+			</div>
 		</div>
 	);
 };
