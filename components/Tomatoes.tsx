@@ -167,7 +167,7 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 														</span>
 													</div>
 													<div className="d-flex justify-content-between w-100">
-														<span className="d-flex align-items-center w-75">
+														<span className="d-flex align-items-center w-95">
 															{tomato.description}
 														</span>
 														<div>
