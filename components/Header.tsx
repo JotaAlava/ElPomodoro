@@ -89,7 +89,10 @@ const Header: React.FC = () => {
 								</li>
 								{!user && (
 									<li className="nav-item">
-										<a className="nav-link" href="/api/auth/login">
+										<a
+											className="nav-link"
+											href="/api/auth/login?returnTo=/tomato"
+										>
 											Login
 										</a>
 									</li>
