@@ -1,5 +1,5 @@
 import { getSession } from '@auth0/nextjs-auth0';
-import { withPageAuthRequired } from '@auth0/nextjs-auth0/client';
+import { withPageAuthRequired } from '@auth0/nextjs-auth0';
 import { Context, PrismaClient, Tomato } from '@prisma/client';
 import { useState } from 'react';
 import { AppContext } from '../../components/AppContext';
@@ -8,26 +8,29 @@ import NewRow from '../../components/NewRow';
 import TomatoTimer from '../../components/TomatoTimer';
 import ContextsList from '../../components/ContextsList';
 
-export async function getServerSideProps(ctx) {
-	const session = await getSession(ctx.req, ctx.res);
-	const prisma = new PrismaClient();
+export const getServerSideProps = withPageAuthRequired({
+	returnTo: '/',
+	async getServerSideProps(ctx) {
+		const session = await getSession(ctx.req, ctx.res);
+		const prisma = new PrismaClient();
 
-	const contexts = await prisma.context.findMany({
-		where: {
-			authorId: {
-				equals: session.user.sub
+		const contexts = await prisma.context.findMany({
+			where: {
+				authorId: {
+					equals: session.user.sub
+				}
 			}
-		}
-	});
+		});
 
-	return {
-		props: {
-			contexts
-		}
-	};
-}
+		return {
+			props: {
+				contexts
+			}
+		};
+	}
+});
 
-export default withPageAuthRequired(function Profile({ user, contexts }) {
+export default function ContextMain({ user, contexts }) {
 	const [isEdit, setIsEdit] = useState<Context>(undefined);
 	const [loadedContexts, setLoadedContexts] =
 		useState<Array<Context>>(contexts);
@@ -131,4 +134,4 @@ export default withPageAuthRequired(function Profile({ user, contexts }) {
 			</Layout>
 		</AppContext.Provider>
 	);
-});
+}

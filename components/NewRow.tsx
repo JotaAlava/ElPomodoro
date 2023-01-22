@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Context, Tomato } from '@prisma/client';
 
 export interface NewRowProps {
@@ -8,6 +8,7 @@ export interface NewRowProps {
 }
 
 const NewRow: React.FC<NewRowProps> = (props) => {
+	const [isSaving, setIsSaving] = useState<boolean>(false);
 	const submitForm = async (val) => {
 		val.preventDefault();
 
@@ -26,12 +27,18 @@ const NewRow: React.FC<NewRowProps> = (props) => {
 		props.onSubmit(result);
 
 		val.target[0].value = '';
+		setIsSaving(false);
 	};
 
 	return (
 		<div className="row pb-lg-4">
 			<div className="col-sm">
-				<form onSubmit={submitForm}>
+				<form
+					onSubmit={(val) => {
+						setIsSaving(true);
+						submitForm(val);
+					}}
+				>
 					<div className="input-group mb-3">
 						<div className="input-group-prepend">
 							<span className="input-group-text" id="inputGroup-sizing-default">
@@ -46,10 +53,20 @@ const NewRow: React.FC<NewRowProps> = (props) => {
 							maxLength={255}
 							required
 						/>
-
-						<button type="submit" className="btn btn-primary">
-							Submit
-						</button>
+						{isSaving ? (
+							<button className="btn btn-primary" type="button" disabled>
+								<span
+									className="spinner-border spinner-border-sm me-1"
+									role="status"
+									aria-hidden="true"
+								></span>
+								Saving...
+							</button>
+						) : (
+							<button type="submit" className="btn btn-primary">
+								Submit
+							</button>
+						)}
 					</div>
 				</form>
 			</div>
