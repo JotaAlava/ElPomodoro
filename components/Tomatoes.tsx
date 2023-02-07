@@ -125,15 +125,16 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 
 		// Compute the weekly total per row
 		result.forEach((res) => {
-			console.log(res.day);
 			const boundaries = getWeekBoundaries(res.day);
-			console.log(boundaries);
 			let weekCount = 0;
 
 			result.forEach((res2) => {
+				const thisDay = new Date(res2.day);
+
 				if (
-					new Date(res2.day) >= boundaries.start &&
-					new Date(res2.day) <= boundaries.end
+					thisDay.getDay() !== 0 &&
+					thisDay >= boundaries.start &&
+					thisDay <= boundaries.end
 				) {
 					weekCount = weekCount + res2.count;
 				}
