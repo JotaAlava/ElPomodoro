@@ -13,6 +13,7 @@ export interface TomatoesProps {
 interface GroupedTomato {
 	day: string;
 	count: number;
+	weekCount: number;
 	contextCount: { [contextId: string]: number };
 	tomatoes: Array<Tomato>;
 }
@@ -23,6 +24,22 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 	selectedContext,
 	reAssignedContext
 }) => {
+	// First day of the week is Sunday. Last is Saturday
+	const getWeekBoundaries = (dayOfWeek) => {
+		const dateOfWeek = new Date(dayOfWeek);
+		const startDate = new Date(
+			dateOfWeek.setDate(dateOfWeek.getDate() - dateOfWeek.getDay())
+		);
+		const endDate = new Date(
+			dateOfWeek.setDate(dateOfWeek.getDate() - dateOfWeek.getDay() + 6)
+		);
+
+		return {
+			start: startDate,
+			end: endDate
+		};
+	};
+
 	const getHash = (tomato: Tomato): string => {
 		const hash = `${tomato.finished.getDate()}${
 			tomato.finished.getMonth() + 1
@@ -79,6 +96,7 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 
 				onGoing = {
 					count: 1,
+					weekCount: 0,
 					day: sortedTomato.finished.toLocaleDateString('en-us', {
 						weekday: 'long',
 						year: 'numeric',
@@ -104,6 +122,25 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 			// Push the last one in as well...
 			result.push(onGoing);
 		}
+
+		// Compute the weekly total per row
+		result.forEach((res) => {
+			console.log(res.day);
+			const boundaries = getWeekBoundaries(res.day);
+			console.log(boundaries);
+			let weekCount = 0;
+
+			result.forEach((res2) => {
+				if (
+					new Date(res2.day) >= boundaries.start &&
+					new Date(res2.day) <= boundaries.end
+				) {
+					weekCount = weekCount + res2.count;
+				}
+			});
+
+			res.weekCount = weekCount;
+		});
 
 		return result;
 	};
@@ -140,7 +177,17 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 								<div className="card-body">
 									<h5 className="card-title">{gt.day}</h5>
 									<h6 className="card-subtitle mb-2 text-muted">
-										{gt.count}
+										<span>
+											Week:{' '}
+											<span
+												className={
+													gt.weekCount < 80 ? 'text-warning' : 'text-success'
+												}
+											>
+												{gt.weekCount}/80
+											</span>
+										</span>
+										<span> Day: {gt.count} </span>
 										{Object.keys(gt.contextCount).map((key, idx2) => {
 											return (
 												<span key={idx2} className="badge bg-secondary ms-1">

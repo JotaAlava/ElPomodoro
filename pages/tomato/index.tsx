@@ -82,13 +82,13 @@ export default function TomatoMain({ user, tomatoes, todos, contexts }) {
 						contextSelected={setSelectedContext}
 					></ContextPicker>
 					<div className="row">
+						<Todo todos={todos}></Todo>
 						<Tomatoes
 							tomatoes={loadedTomatoes}
 							contexts={toIdName(contexts)}
 							selectedContext={selectedContext}
 							reAssignedContext={onSave}
 						></Tomatoes>
-						<Todo todos={todos}></Todo>
 					</div>
 				</div>
 			</Layout>
