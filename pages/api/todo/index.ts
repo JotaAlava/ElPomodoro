@@ -3,12 +3,15 @@ import { PrismaClient } from '@prisma/client';
 import * as yup from 'yup';
 import { withSchemaValidation } from '../../../middleware/withSchemaValidation';
 import { getSession, withApiAuthRequired } from '@auth0/nextjs-auth0';
+import { loadTodos } from '../../../services/todoService';
 
 const prisma = new PrismaClient();
 export interface TodoRequest extends NextApiRequest {
 	body: {
 		id?: string;
 		description: string;
+		contextId?: string;
+		dueDate?: string;
 	};
 }
 
@@ -18,8 +21,9 @@ const schema = yup.object().shape({
 
 const handler = async (req: TodoRequest, res: NextApiResponse) => {
 	const { user } = await getSession(req, res);
+
 	if (req.method === 'GET') {
-		const allTodos = prisma.todo.findMany();
+		const allTodos = await loadTodos(user.sub);
 		res.statusCode = 200;
 		res.json(allTodos);
 	} else if (req.method === 'POST') {
@@ -30,7 +34,7 @@ const handler = async (req: TodoRequest, res: NextApiResponse) => {
 			}
 		});
 
-		const allTodos = await prisma.todo.findMany();
+		const allTodos = await loadTodos(user.sub);
 		res.json(allTodos);
 	} else if (req.method === 'DELETE') {
 		await prisma.todo.delete({
@@ -39,7 +43,20 @@ const handler = async (req: TodoRequest, res: NextApiResponse) => {
 			}
 		});
 
-		const allTodos = await prisma.todo.findMany();
+		const allTodos = await loadTodos(user.sub);
+		res.json(allTodos);
+	} else if (req.method === 'PUT') {
+		await prisma.todo.update({
+			where: {
+				id: req.body.id
+			},
+			data: {
+				dueDate: req.body.dueDate || null,
+				contextId: req.body.contextId || null
+			}
+		});
+
+		const allTodos = await loadTodos(user.sub);
 		res.json(allTodos);
 	} else {
 		res.statusCode = 404; // 404 or anything you want

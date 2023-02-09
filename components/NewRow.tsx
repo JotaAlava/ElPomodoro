@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Context, Tomato } from '@prisma/client';
+import { Context, Todo, Tomato } from '@prisma/client';
 
 export interface NewRowProps {
-	onSubmit: (reloadedTomatoes: Array<Tomato>) => void;
+	onSubmit: (reloadedTomatoes: Array<Tomato | Todo>) => void;
 	selectedContext?: Context;
 	field: string;
 }

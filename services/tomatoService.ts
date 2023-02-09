@@ -18,6 +18,7 @@ class TomatoService {
 
 	async findManyForUser(): Promise<Array<TomatoViewModel>> {
 		const tomatoesWithDate = await this.prisma.tomato.findMany({
+			take: 80, // This is two weeks worth of 10x performance
 			where: {
 				authorId: {
 					equals: this.session.user.sub

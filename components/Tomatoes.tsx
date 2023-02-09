@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Context, Tomato } from '@prisma/client';
 import { faObjectUngroup } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { IdName } from './Todos';
 
 export interface TomatoesProps {
 	tomatoes: Array<Tomato>;
-	contexts: { [id: string]: string };
+	contexts: IdName;
 	selectedContext: Context;
 	reAssignedContext: (tomatoes: Array<Tomato>) => void;
 }

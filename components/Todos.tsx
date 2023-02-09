@@ -1,15 +1,22 @@
 import React, { useState } from 'react';
 import NewRow from './NewRow';
-import { Todo } from '@prisma/client';
+import { Context, Todo } from '@prisma/client';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSquareCheck } from '@fortawesome/free-regular-svg-icons';
+import { faObjectUngroup } from '@fortawesome/free-regular-svg-icons';
+
+export interface IdName {
+	[id: string]: string;
+}
 
 export interface TodoProps {
 	todos: Array<Todo>;
+	contexts: IdName;
+	selectedContext: Context;
 }
 
 const Todo: React.FC<TodoProps> = (props) => {
 	const [loadedTodos, setLoadedTodos] = useState<Array<Todo>>(props.todos);
+	const [editDueDate, setEditDueDate] = useState<IdName>({});
 
 	const onSave = (newTodos: Array<Todo>) => {
 		setLoadedTodos(newTodos);
@@ -30,6 +37,23 @@ const Todo: React.FC<TodoProps> = (props) => {
 		setLoadedTodos(result);
 	};
 
+	const updateTodo = async (todo: Todo) => {
+		const response = await fetch(`/api/todo`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(todo)
+		});
+
+		const result = await response.json();
+		setLoadedTodos(result);
+	};
+
+	const isInFuture = (dueDate: Date) => {
+		return dueDate.getTime() > new Date().getTime();
+	};
+
 	return (
 		<div className="col-sm">
 			<h3>TODOs</h3>
@@ -38,16 +62,102 @@ const Todo: React.FC<TodoProps> = (props) => {
 				<div id="list-example" className="list-group">
 					{loadedTodos.map((todo, idx) => {
 						return (
-							<a
-								key={idx}
-								className="list-group-item list-group-item-action"
-								href="#"
-								onClick={() => {
-									complete(todo);
-								}}
-							>
-								{todo.description}
-							</a>
+							<div className="card" key={idx}>
+								<div className="card-body">
+									<div className="card-text">
+										<div className="d-flex flex-wrap" key={idx}>
+											<div className="d-flex justify-content-between w-100 mb-2">
+												{todo.dueDate && (
+													<span className="d-flex align-items-center">
+														<strong
+															className={
+																isInFuture(new Date(todo.dueDate))
+																	? 'text-success'
+																	: 'text-warning'
+															}
+														>
+															Due On: {todo.dueDate}
+														</strong>
+													</span>
+												)}
+												<span className="badge bg-secondary ms-1 h-100">
+													{props.contexts[todo.contextId]}
+												</span>
+											</div>
+											<div className="d-flex justify-content-between w-100">
+												<span
+													className="d-flex align-items-center w-95 list-group-item list-group-item-action"
+													role="button"
+													onClick={() => {
+														complete(todo);
+													}}
+												>
+													{todo.description}
+												</span>
+												<div className="todo-context">
+													{editDueDate[todo.id] ? (
+														<>
+															<label>Due On:</label>
+															<input
+																id="startDate"
+																className="form-control"
+																type="date"
+																onChange={(val) => {
+																	updateTodo({
+																		...todo,
+																		dueDate: val.target.value
+																	});
+
+																	const newState = {};
+																	newState[todo.id] = false;
+
+																	const updated = {
+																		...editDueDate,
+																		...newState
+																	};
+
+																	setEditDueDate(updated);
+																}}
+															/>
+														</>
+													) : (
+														<span
+															role="button"
+															onClick={() => {
+																const newState = {};
+																newState[todo.id] = true;
+
+																const updated = {
+																	...editDueDate,
+																	...newState
+																};
+
+																setEditDueDate(updated);
+															}}
+														>
+															Due Date
+														</span>
+													)}
+
+													{props.selectedContext ? (
+														<FontAwesomeIcon
+															className="m-1"
+															icon={faObjectUngroup}
+															role="button"
+															onClick={() => {
+																updateTodo({
+																	...todo,
+																	contextId: props.selectedContext.id
+																});
+															}}
+														/>
+													) : null}
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
 						);
 					})}
 				</div>

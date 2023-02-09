@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Layout from '../../components/Layout';
 import { AppContext } from '../../components/AppContext';
-import Todo from '../../components/Todos';
+import Todo, { IdName } from '../../components/Todos';
 import Tomatoes from '../../components/Tomatoes';
 import ContextPicker from '../../components/ContextPicker';
 import TomatoTimer from '../../components/TomatoTimer';
@@ -9,6 +9,7 @@ import NewRow from '../../components/NewRow';
 import { Context, PrismaClient, Tomato } from '@prisma/client';
 import TomatoService from '../../services/tomatoService';
 import { getSession, withPageAuthRequired } from '@auth0/nextjs-auth0';
+import { loadTodos } from '../../services/todoService';
 
 export const getServerSideProps = withPageAuthRequired({
 	returnTo: '/',
@@ -16,14 +17,7 @@ export const getServerSideProps = withPageAuthRequired({
 		const session = await getSession(ctx.req, ctx.res);
 		const prisma = new PrismaClient();
 
-		const todos = await prisma.todo.findMany({
-			take: 80, // This is two weeks worth of 10x performance
-			where: {
-				authorId: {
-					equals: session.user.sub
-				}
-			}
-		});
+		const todos = await loadTodos(session.user.sub);
 
 		const tomatoService = new TomatoService(prisma, session);
 		const tomatoes = await tomatoService.findManyForUser();
@@ -45,22 +39,25 @@ export const getServerSideProps = withPageAuthRequired({
 	}
 });
 
+const toIdName = (contexts: Array<Context>): { [id: string]: string } => {
+	const result = {};
+
+	contexts.forEach((ctx) => {
+		result[ctx.id] = ctx.description;
+	});
+
+	return result;
+};
+
 export default function TomatoMain({ user, tomatoes, todos, contexts }) {
 	const [loadedTomatoes, setTomatoes] = useState<Array<Tomato>>(tomatoes);
 	const [selectedContext, setSelectedContext] = useState<Context>(undefined);
+	const [idNameContexts, setIdNameContexts] = useState<IdName>(
+		toIdName(contexts)
+	);
 
 	const onSave = (newTomatoes: Array<Tomato>) => {
 		setTomatoes(newTomatoes);
-	};
-
-	const toIdName = (contexts: Array<Context>): { [id: string]: string } => {
-		const result = {};
-
-		contexts.forEach((ctx) => {
-			result[ctx.id] = ctx.description;
-		});
-
-		return result;
 	};
 
 	return (
@@ -82,10 +79,14 @@ export default function TomatoMain({ user, tomatoes, todos, contexts }) {
 						contextSelected={setSelectedContext}
 					></ContextPicker>
 					<div className="row">
-						<Todo todos={todos}></Todo>
+						<Todo
+							todos={todos}
+							contexts={idNameContexts}
+							selectedContext={selectedContext}
+						></Todo>
 						<Tomatoes
 							tomatoes={loadedTomatoes}
-							contexts={toIdName(contexts)}
+							contexts={idNameContexts}
 							selectedContext={selectedContext}
 							reAssignedContext={onSave}
 						></Tomatoes>
