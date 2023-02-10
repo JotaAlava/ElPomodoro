@@ -119,9 +119,26 @@ const Todo: React.FC<TodoProps> = (props) => {
 																	setEditDueDate(updated);
 																}}
 															/>
+															<button
+																className="btn btn-warning cancel-due-date"
+																onClick={() => {
+																	const newState = {};
+																	newState[todo.id] = false;
+
+																	const updated = {
+																		...editDueDate,
+																		...newState
+																	};
+
+																	setEditDueDate(updated);
+																}}
+															>
+																Cancel
+															</button>
 														</>
 													) : (
 														<span
+															className="ms-3"
 															role="button"
 															onClick={() => {
 																const newState = {};
@@ -139,7 +156,7 @@ const Todo: React.FC<TodoProps> = (props) => {
 														</span>
 													)}
 
-													{props.selectedContext ? (
+													{props.selectedContext && !editDueDate[todo.id] ? (
 														<FontAwesomeIcon
 															className="m-1"
 															icon={faObjectUngroup}

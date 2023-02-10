@@ -45,6 +45,19 @@ svg {
 
 .todo-context {
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	margin-left: 10px;
+}
+
+.todo-context > span:hover {
+	text-decoration: underline;
+}
+
+.cancel-due-date {
+	height: 25px;
+	width: 70px;
+	margin-top: 10px;
+	font-size: small;
+	padding-bottom: 25px;
 }
