@@ -168,6 +168,7 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 		setGroupedTomatoes(sort(tomatoes));
 	}, tomatoes);
 
+	const workGoal = 90;
 	return (
 		<div className="col-sm">
 			<h3>Tomatoes</h3>
@@ -183,10 +184,12 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 											Week:{' '}
 											<span
 												className={
-													gt.weekCount < 80 ? 'text-warning' : 'text-success'
+													gt.weekCount < workGoal
+														? 'text-warning'
+														: 'text-success'
 												}
 											>
-												{gt.weekCount}/80
+												{gt.weekCount}/{workGoal}
 											</span>
 										</span>
 										<span> Day: {gt.count} </span>
