@@ -13,7 +13,7 @@ const clockify = (timerValue) => {
 
 enum PomodoroTimer {
 	Cookie = 'elPomodoroTimer',
-	Sound = 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
+	Sound = 'https://www.soundjay.com/misc_c2026/sounds/bell-ringing-05.mp3',
 	WorkMode = 'Work',
 	BreakMode = 'Break',
 	// In Seconds....
