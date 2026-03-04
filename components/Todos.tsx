@@ -23,7 +23,6 @@ interface ContextMenu {
 }
 
 const Todo: React.FC<TodoProps> = (props) => {
-	const [showAll, setShowAll] = useState(false);
 	const [loadedTodos, setLoadedTodos] = useState<Array<Todo>>(props.todos);
 	const [editDueDate, setEditDueDate] = useState<IdName>({});
 	const [focusMode, setFocusMode] = useState(true);
@@ -101,13 +100,6 @@ const Todo: React.FC<TodoProps> = (props) => {
 		}
 	};
 
-	const filterByOthers = (todo: Todo) => {
-		if (props?.selectedContext?.id) {
-			return todo.contextId !== props.selectedContext.id;
-		} else {
-			return false;
-		}
-	};
 
 	const isDeferred = (todo: Todo) => (todo as any).deferredDate === todayISO;
 
@@ -295,74 +287,6 @@ const Todo: React.FC<TodoProps> = (props) => {
 					</div>
 				)}
 
-				<button
-					className="btn btn-warning mb-4 mt-4"
-					style={{ width: '100%' }}
-					onClick={() => {
-						setShowAll(!showAll);
-					}}
-				>
-					Show All
-				</button>
-				{showAll && (
-					<div className="list-group" style={{ opacity: '0.75' }}>
-						{loadedTodos.filter(filterByOthers).length === 0 && (
-							<p className="mt-3 text-center">All done!</p>
-						)}
-						{loadedTodos
-							.filter(filterByOthers)
-							.sort((a, b) => {
-								const contextIdA = a.contextId;
-								const contextIdB = b.contextId;
-
-								if (contextIdA === null) {
-									return 1; // Place null at the bottom
-								}
-								if (contextIdB === null) {
-									return -1; // Place null at the bottom
-								}
-
-								if (a.contextId > b.contextId) {
-									return 1;
-								} else if (a.contextId < b.contextId) {
-									return -1;
-								} else {
-									return 0;
-								}
-							})
-							.map((todo, idx) => {
-								return (
-									<div className="card" key={idx}>
-										<div className="card-body">
-											<div className="card-text">
-												<div className="d-flex flex-wrap" key={idx}>
-													<div className="d-flex justify-content-between w-100 mb-2">
-														<span className="badge bg-secondary ms-1 h-100">
-															{props.contexts[todo.contextId]}
-														</span>
-													</div>
-													<div className="d-flex justify-content-between w-100">
-														<span
-															className="d-flex align-items-center w-95 list-group-item list-group-item-action"
-															role="button"
-															onClick={() => {
-																updateTodo({
-																	...todo,
-																	contextId: props.selectedContext.id
-																});
-															}}
-														>
-															{todo.description}
-														</span>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-								);
-							})}
-					</div>
-				)}
 			</>
 
 		{contextMenu && (

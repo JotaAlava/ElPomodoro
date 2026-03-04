@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import Cookies from 'js-cookie';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faShareFromSquare } from '@fortawesome/free-regular-svg-icons';
 import Layout from '../../components/Layout';
 import { AppContext } from '../../components/AppContext';
 import Todo, { IdName } from '../../components/Todos';
@@ -204,13 +207,24 @@ const WeeklySummary: React.FC<{ tomatoes: Array<any>; contexts: Array<Context> }
 							className="btn btn-outline-secondary btn-sm"
 							onClick={copyProgress}
 						>
-							{copiedConfirm ? 'Copied!' : 'Copy week'}
+							{copiedConfirm ? 'Copied!' : <><FontAwesomeIcon icon={faShareFromSquare} className="me-1" />Share Progress</>}
 						</button>
 					</div>
 				</div>
 			)}
 		</div>
 	);
+};
+
+const getTimerRunning = (): boolean => {
+	try {
+		const val = Cookies.get('elPomodoroTimer');
+		if (!val) return false;
+		const state = JSON.parse(val);
+		return !!state.started && state.mode === 'Work';
+	} catch {
+		return false;
+	}
 };
 
 const StreakBar: React.FC<{ streak: number; lastFinished: number | null }> = ({
@@ -223,6 +237,7 @@ const StreakBar: React.FC<{ streak: number; lastFinished: number | null }> = ({
 	const [isStale, setIsStale] = useState<boolean>(
 		lastFinished ? Date.now() - lastFinished * 1000 > 90 * 60 * 1000 : false
 	);
+	const [sessionInProgress, setSessionInProgress] = useState<boolean>(getTimerRunning);
 
 	useEffect(() => {
 		if (!lastFinished) return;
@@ -234,7 +249,12 @@ const StreakBar: React.FC<{ streak: number; lastFinished: number | null }> = ({
 		return () => clearInterval(id);
 	}, [lastFinished]);
 
-	if (streak === 0 && !lastFinished) return null;
+	useEffect(() => {
+		const id = setInterval(() => setSessionInProgress(getTimerRunning()), 1000);
+		return () => clearInterval(id);
+	}, []);
+
+	if (streak === 0 && !lastFinished && !sessionInProgress) return null;
 
 	return (
 		<div
@@ -246,14 +266,16 @@ const StreakBar: React.FC<{ streak: number; lastFinished: number | null }> = ({
 					🔥 {streak}-day streak
 				</span>
 			)}
-			{streak > 0 && lastFinished && (
+			{streak > 0 && (lastFinished || sessionInProgress) && (
 				<span style={{ color: '#6c757d' }}>|</span>
 			)}
-			{lastFinished && timeAgo && (
+			{sessionInProgress ? (
+				<span className="text-primary">🍅 Session in progress</span>
+			) : (lastFinished && timeAgo && (
 				<span className={isStale ? 'text-warning' : 'text-success'}>
 					Last session: {timeAgo}
 				</span>
-			)}
+			))}
 		</div>
 	);
 };
@@ -262,9 +284,11 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 	const [loadedTomatoes, setTomatoes] = useState<Array<Tomato>>(tomatoes);
 	const [selectedContext, setSelectedContext] = useState<Context>(undefined);
 	const [idNameContexts] = useState<IdName>(toIdName(contexts));
+	const [currentLastFinished, setCurrentLastFinished] = useState<number | null>(lastFinished);
 
 	const onSave = (newTomatoes: Array<Tomato>) => {
 		setTomatoes(newTomatoes);
+		setCurrentLastFinished(Math.floor(Date.now() / 1000));
 	};
 
 	return (
@@ -276,7 +300,7 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 			<Layout>
 				<TomatoTimer></TomatoTimer>
 				<div className="container">
-					<StreakBar streak={streak} lastFinished={lastFinished} />
+					<StreakBar streak={streak} lastFinished={currentLastFinished} />
 				<WeeklySummary tomatoes={loadedTomatoes} contexts={contexts} />
 					<NewRow
 						field="tomato"
