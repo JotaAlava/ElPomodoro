@@ -188,39 +188,37 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 							<div className="card" key={idx}>
 								<div className="card-body">
 									<h5 className="card-title">{gt.day}</h5>
-									<h6 className="card-subtitle mb-2 text-muted">
-										<span>
-											Week:{' '}
-											<span
-												className={
-													gt.weekCount < workGoal
-														? 'text-warning'
-														: 'text-success'
-												}
-											>
-												{gt.weekCount}/{workGoal}
+									<h6 className="card-subtitle mb-1 text-muted">
+										<div>
+											<span>
+												Week:{' '}
+												<span className={gt.weekCount < workGoal ? 'text-warning' : 'text-success'}>
+													{gt.weekCount}/{workGoal}
+												</span>
 											</span>
-										</span>
-										<span> Day: {gt.count} </span>
-										{Object.keys(gt.contextCount).map((key, idx2) => {
-											return (
-												<span key={idx2} className="badge bg-secondary ms-1">
-													{contexts[key]} : {gt.contextCount[key]}
-												</span>
-											);
-										})}
-										{Object.keys(contextGoals).map((ctxId, idx2) => {
-											const goal = contextGoals[ctxId];
-											const weekCtxCount = gt.weekContextCount[ctxId] || 0;
-											return (
-												<span
-													key={`goal-${idx2}`}
-													className={`badge ms-1 ${weekCtxCount >= goal ? 'bg-success' : 'bg-warning text-dark'}`}
-												>
-													{contexts[ctxId]}: {weekCtxCount}/{goal}
-												</span>
-											);
-										})}
+											{Object.keys(contextGoals).map((ctxId, idx2) => {
+												const goal = contextGoals[ctxId];
+												const weekCtxCount = gt.weekContextCount[ctxId] || 0;
+												return (
+													<span
+														key={`goal-${idx2}`}
+														className={`badge ms-2 ${weekCtxCount >= goal ? 'bg-success' : 'bg-warning text-dark'}`}
+													>
+														{contexts[ctxId]}: {weekCtxCount}/{goal}
+													</span>
+												);
+											})}
+										</div>
+										<div>
+											<span>Day: {gt.count}</span>
+											{Object.keys(gt.contextCount).map((key, idx2) => {
+												return (
+													<span key={idx2} className="badge bg-secondary ms-2">
+														{contexts[key]}: {gt.contextCount[key]}
+													</span>
+												);
+											})}
+										</div>
 									</h6>
 									<div className="card-text">
 										{gt.tomatoes.map((tomato, idx2) => {
