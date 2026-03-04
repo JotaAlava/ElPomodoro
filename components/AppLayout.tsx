@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHourglass2, faCompass } from '@fortawesome/free-regular-svg-icons';
+import { faHourglass2, faCompass, faChartBar } from '@fortawesome/free-regular-svg-icons';
 
 interface AppLayoutProps {
 	children: ReactNode;
@@ -40,6 +40,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 						>
 							<FontAwesomeIcon icon={faCompass} />
 							<span>Focus</span>
+						</a>
+						<a
+							href="/dashboard"
+							className={`app-sidebar__item${isActive('/dashboard') ? ' app-sidebar__item--active' : ''}`}
+						>
+							<FontAwesomeIcon icon={faChartBar} />
+							<span>Stats</span>
 						</a>
 					</nav>
 				</div>

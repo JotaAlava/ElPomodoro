@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShareFromSquare } from '@fortawesome/free-regular-svg-icons';
 import AppLayout from '../../components/AppLayout';
 import { AppContext } from '../../components/AppContext';
 import Todo, { IdName } from '../../components/Todos';
@@ -103,119 +101,6 @@ const humanAgo = (epochSeconds: number): string => {
 	return rem > 0 ? `${hours}h ${rem}m ago` : `${hours}h ago`;
 };
 
-const WeeklySummary: React.FC<{ tomatoes: Array<any>; contexts: Array<Context> }> = ({
-	tomatoes,
-	contexts
-}) => {
-	const [showSummary, setShowSummary] = useState<boolean>(false);
-	const [copiedConfirm, setCopiedConfirm] = useState<boolean>(false);
-
-	const getWeekBounds = (d: Date) => {
-		const date = new Date(d);
-		const day = date.getDay();
-		const monday = new Date(date);
-		monday.setDate(date.getDate() - (day === 0 ? 6 : day - 1));
-		monday.setHours(0, 0, 0, 0);
-		const sunday = new Date(monday);
-		sunday.setDate(monday.getDate() + 6);
-		sunday.setHours(23, 59, 59, 999);
-		return { monday, sunday };
-	};
-
-	const now = new Date();
-	const { monday: thisMonday, sunday: thisSunday } = getWeekBounds(now);
-	const lastMonday = new Date(thisMonday);
-	lastMonday.setDate(thisMonday.getDate() - 7);
-	const lastSunday = new Date(lastMonday);
-	lastSunday.setDate(lastMonday.getDate() + 6);
-	lastSunday.setHours(23, 59, 59, 999);
-
-	const thisWeekTomatoes = tomatoes.filter((t) => {
-		const d = new Date(t.finished * 1000);
-		return d.getDay() !== 0 && d >= thisMonday && d <= thisSunday;
-	});
-	const lastWeekTomatoes = tomatoes.filter((t) => {
-		const d = new Date(t.finished * 1000);
-		return d.getDay() !== 0 && d >= lastMonday && d <= lastSunday;
-	});
-
-	const thisWeekCount = thisWeekTomatoes.length;
-	const lastWeekCount = lastWeekTomatoes.length;
-	const hoursWorked = (thisWeekCount * 25 / 60).toFixed(1);
-	const wowDelta = thisWeekCount - lastWeekCount;
-
-	const dayCounts: { [day: number]: number } = {};
-	thisWeekTomatoes.forEach((t) => {
-		const d = new Date(t.finished * 1000).getDay();
-		dayCounts[d] = (dayCounts[d] || 0) + 1;
-	});
-	const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-	let bestDay = '—';
-	let bestDayCount = 0;
-	Object.entries(dayCounts).forEach(([day, count]) => {
-		if (count > bestDayCount) { bestDayCount = count; bestDay = dayNames[Number(day)]; }
-	});
-
-	const contextGoalMap: { [id: string]: number } = {};
-	contexts.forEach((ctx) => { if (ctx.weeklyMinimum > 0) contextGoalMap[ctx.id] = ctx.weeklyMinimum; });
-	const goalEntries = Object.entries(contextGoalMap);
-	const weekContextCounts: { [id: string]: number } = {};
-	thisWeekTomatoes.forEach((t) => {
-		if (t.contextId) weekContextCounts[t.contextId] = (weekContextCounts[t.contextId] || 0) + 1;
-	});
-	const goalsMet = goalEntries.filter(([id, goal]) => (weekContextCounts[id] || 0) >= goal).length;
-	const goalsTotal = goalEntries.length;
-
-	const weekStart = thisMonday.toLocaleDateString('en-us', { month: 'short', day: 'numeric' });
-	const weekEnd = thisSunday.toLocaleDateString('en-us', { month: 'short', day: 'numeric' });
-
-	const copyProgress = () => {
-		const lines = [
-			`ElPomodoro — Week of ${weekStart}–${weekEnd}:`,
-			`🍅 ${thisWeekCount}/90 sessions (${Math.round(thisWeekCount / 90 * 100)}%)`,
-		];
-		goalEntries.forEach(([id, goal]) => {
-			const ctx = contexts.find((c) => c.id === id);
-			const count = weekContextCounts[id] || 0;
-			const icon = count >= goal ? '✅' : '⚠️';
-			lines.push(`${icon} ${ctx?.description ?? id}: ${count}/${goal}`);
-		});
-		lines.push(`⏱️ ~${hoursWorked} hrs focused`);
-		navigator.clipboard.writeText(lines.join('\n'));
-		setCopiedConfirm(true);
-		setTimeout(() => setCopiedConfirm(false), 1500);
-	};
-
-	return (
-		<div className="mb-2">
-			<button
-				className="btn btn-link p-0 text-decoration-none"
-				onClick={() => setShowSummary((v) => !v)}
-			>
-				This Week {showSummary ? '▴' : '▾'}
-			</button>
-			{showSummary && (
-				<div className="card mt-1">
-					<div className="card-body py-2 px-3">
-						<p className="mb-1" style={{ fontSize: '0.9rem' }}>
-							{thisWeekCount} sessions · ~{hoursWorked} hrs focused
-							{bestDay !== '—' && ` · Best day: ${bestDay}`}
-							{goalsTotal > 0 && ` · ${goalsMet}/${goalsTotal} goals met`}
-							{lastWeekCount > 0 && ` · ${wowDelta >= 0 ? '+' : ''}${wowDelta} vs last week`}
-						</p>
-						<button
-							className="btn btn-outline-secondary btn-sm"
-							onClick={copyProgress}
-						>
-							{copiedConfirm ? 'Copied!' : <><FontAwesomeIcon icon={faShareFromSquare} className="me-1" />Share Progress</>}
-						</button>
-					</div>
-				</div>
-			)}
-		</div>
-	);
-};
-
 const getTimerRunning = (): boolean => {
 	try {
 		const val = Cookies.get('elPomodoroTimer');
@@ -314,9 +199,6 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 				<div className="content-fold">
 					<div className="container py-4">
 						<StreakBar streak={streak} lastFinished={currentLastFinished} />
-						<div className={timerRunning ? 'focus-dim-soft' : ''}>
-							<WeeklySummary tomatoes={loadedTomatoes} contexts={contexts} />
-						</div>
 						<NewRow
 							field="tomato"
 							onSubmit={onSave}
