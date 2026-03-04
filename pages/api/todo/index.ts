@@ -12,6 +12,7 @@ export interface TodoRequest extends NextApiRequest {
 		description: string;
 		contextId?: string;
 		dueDate?: string;
+		deferredDate?: string;
 	};
 }
 
@@ -52,7 +53,8 @@ const handler = async (req: TodoRequest, res: NextApiResponse) => {
 			},
 			data: {
 				dueDate: req.body.dueDate || null,
-				contextId: req.body.contextId || null
+				contextId: req.body.contextId || null,
+				deferredDate: req.body.deferredDate || null
 			}
 		});
 

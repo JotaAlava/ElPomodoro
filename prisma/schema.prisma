@@ -33,11 +33,12 @@ model Tomato {
 }
 
 model Todo {
-  id          String @id @default(cuid())
-  description String
-  authorId    String
-  Context     Context? @relation(fields: [contextId], references: [id])
-  contextId   String?
-  dueDate     String?
-  created     DateTime  @default(now()) @db.Timestamptz(3)
+  id            String @id @default(cuid())
+  description   String
+  authorId      String
+  Context       Context? @relation(fields: [contextId], references: [id])
+  contextId     String?
+  dueDate       String?
+  deferredDate  String?
+  created       DateTime  @default(now()) @db.Timestamptz(3)
 }

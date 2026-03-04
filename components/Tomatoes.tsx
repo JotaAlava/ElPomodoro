@@ -160,9 +160,58 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 		return result;
 	};
 
+	const MILESTONES = [10, 25, 50, 100, 250, 500, 1000];
+
+	const computeMilestoneMap = (grouped: Array<GroupedTomato>): Map<number, number> => {
+		const result = new Map<number, number>();
+		const oldestFirst = [...grouped].reverse();
+		let cumulative = 0;
+		let nextMilestoneIdx = 0;
+		oldestFirst.forEach((g, oldestIdx) => {
+			const prevCumulative = cumulative;
+			cumulative += g.count;
+			while (nextMilestoneIdx < MILESTONES.length && cumulative >= MILESTONES[nextMilestoneIdx]) {
+				const newestFirstIdx = grouped.length - 1 - oldestIdx;
+				result.set(newestFirstIdx, MILESTONES[nextMilestoneIdx]);
+				nextMilestoneIdx++;
+			}
+		});
+		return result;
+	};
+
+	const getMondayOfWeek = (date: Date): Date => {
+		const d = new Date(date);
+		const day = d.getDay();
+		const diff = day === 0 ? -6 : 1 - day;
+		d.setDate(d.getDate() + diff);
+		d.setHours(0, 0, 0, 0);
+		return d;
+	};
+
+	const computeWeeklyTrends = (tomatoList: Array<Tomato>): Array<{ label: string; count: number; mondayTs: number }> => {
+		const weekMap = new Map<number, { label: string; count: number; mondayTs: number }>();
+		tomatoList.forEach((t) => {
+			const d = new Date((t.finished as any) * 1000);
+			const monday = getMondayOfWeek(d);
+			const key = monday.getTime();
+			if (!weekMap.has(key)) {
+				const sunday = new Date(monday);
+				sunday.setDate(monday.getDate() + 6);
+				const fmt = (dt: Date) => dt.toLocaleDateString('en-us', { month: 'short', day: 'numeric' });
+				weekMap.set(key, { label: `${fmt(monday)}–${fmt(sunday)}`, count: 0, mondayTs: key });
+			}
+			weekMap.get(key).count++;
+		});
+		return Array.from(weekMap.values())
+			.sort((a, b) => b.mondayTs - a.mondayTs)
+			.slice(0, 8)
+			.reverse();
+	};
+
 	const [groupedTomatoes, setGroupedTomatoes] = useState<Array<GroupedTomato>>(
 		sort(tomatoes)
 	);
+	const [showTrends, setShowTrends] = useState<boolean>(false);
 	const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
 	const menuRef = useRef<HTMLDivElement>(null);
 
@@ -204,14 +253,55 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 	);
 
 	const workGoal = 90;
+	const milestoneMap = computeMilestoneMap(groupedTomatoes);
+	const weeklyTrends = computeWeeklyTrends(tomatoes);
+
 	return (
 		<div className="col-sm">
 			<h3>Tomatoes</h3>
+
+			<button
+				className="btn btn-link p-0 mb-2 text-decoration-none"
+				onClick={() => setShowTrends((v) => !v)}
+			>
+				Focus Trends {showTrends ? '▴' : '▾'}
+			</button>
+			{showTrends && (
+				<div className="mb-3">
+					{weeklyTrends.map((w, i) => {
+						const pct = Math.min(100, (w.count / workGoal) * 100);
+						const barClass = w.count >= workGoal ? 'bg-success' : w.count >= 45 ? 'bg-warning' : 'bg-danger';
+						return (
+							<div key={i} className="mb-1">
+								<div className="d-flex justify-content-between" style={{ fontSize: '0.8rem' }}>
+									<span>{w.label}</span>
+									<span>{w.count}/{workGoal}</span>
+								</div>
+								<div className="progress" style={{ height: 16 }}>
+									<div
+										className={`progress-bar ${barClass}`}
+										style={{ width: `${pct}%` }}
+									/>
+								</div>
+							</div>
+						);
+					})}
+				</div>
+			)}
+
 			{groupedTomatoes.length > 0 ? (
 				<div id="list-example" className="list-group">
 					{groupedTomatoes.map((gt, idx) => {
 						return (
-							<div className="card" key={idx}>
+							<React.Fragment key={idx}>
+							{milestoneMap.has(idx) && (
+								<div className="text-center my-2">
+									<span className="badge bg-warning text-dark fs-6 px-3 py-2">
+										🏆 {milestoneMap.get(idx)} Sessions
+									</span>
+								</div>
+							)}
+							<div className="card">
 								<div className="card-body">
 									<h5 className="card-title">{gt.day}</h5>
 									<h6 className="card-subtitle mb-1 text-muted">
@@ -244,6 +334,11 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 													</span>
 												);
 											})}
+											{Object.keys(gt.contextCount).length >= 4 && (
+												<span className="badge bg-warning text-dark ms-2">
+													⚡ {Object.keys(gt.contextCount).length} context switches
+												</span>
+											)}
 										</div>
 									</h6>
 									<div className="card-text">
@@ -275,6 +370,7 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 									</div>
 								</div>
 							</div>
+						</React.Fragment>
 						);
 					})}
 				</div>
@@ -285,7 +381,7 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 			{contextMenu && (
 				<div
 					ref={menuRef}
-					className="dropdown-menu show shadow"
+					className="dropdown-menu dropdown-menu-dark show shadow"
 					style={{
 						position: 'fixed',
 						top: contextMenu.y,
