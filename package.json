@@ -4,7 +4,7 @@
 	"description": "An implementation of the pomodoro technique to support 10x remote work.",
 	"scripts": {
 		"dev": "next",
-		"build": "next build",
+		"build": "prisma generate && next build",
 		"start": "next start",
 		"syncdb": "npx prisma generate && npx prisma db push"
 	},
