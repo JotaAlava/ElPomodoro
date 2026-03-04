@@ -62,6 +62,237 @@ svg {
 	padding-bottom: 25px;
 }
 
+// ── Landing page ──────────────────────────────────────────────────────────
+
+.landing-nav {
+	position: absolute;
+	top: 0; left: 0; right: 0;
+	z-index: 10;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 1.5rem 2rem;
+
+	&__brand {
+		color: #fff9ec;
+		font-size: 1.1rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+	}
+
+	&__links {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	&__link {
+		color: #b3aa99;
+		text-decoration: none;
+		font-size: 0.9rem;
+		&:hover { color: #fff9ec; }
+	}
+
+	&__cta {
+		color: #00cea8;
+		text-decoration: none;
+		font-size: 0.9rem;
+		font-weight: 600;
+		&:hover { color: #fff9ec; }
+	}
+}
+
+.landing-hero {
+	background: #1a1610;
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	padding: 7rem 1.5rem 5rem;
+	position: relative;
+
+	&__modes {
+		display: flex;
+		gap: 0.5rem;
+		margin-bottom: 2.5rem;
+	}
+
+	&__subtitle {
+		color: #b3aa99;
+		font-size: 0.85rem;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		margin: 0.75rem 0 3rem;
+	}
+
+	&__headline {
+		color: #fff9ec;
+		font-size: clamp(1.6rem, 4vw, 2.75rem);
+		font-weight: 300;
+		max-width: 580px;
+		line-height: 1.3;
+		margin-bottom: 1rem;
+	}
+
+	&__body {
+		color: #b3aa99;
+		font-size: 1.05rem;
+		max-width: 460px;
+		line-height: 1.75;
+		margin-bottom: 2.5rem;
+	}
+
+	&__actions {
+		display: flex;
+		gap: 1rem;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+
+	&__scroll {
+		position: absolute;
+		bottom: 2rem;
+		color: #4d4637;
+		font-size: 1.2rem;
+		animation: landing-bounce 2s ease-in-out infinite;
+	}
+}
+
+.landing-timer {
+	font-size: clamp(5rem, 18vw, 11rem);
+	font-weight: 700;
+	color: #00cea8;
+	line-height: 1;
+	letter-spacing: -0.05em;
+	text-shadow: 0 0 60px rgba(0, 206, 168, 0.25);
+	font-variant-numeric: tabular-nums;
+}
+
+.landing-mode {
+	padding: 0.35rem 1.1rem;
+	border-radius: 999px;
+	font-size: 0.8rem;
+	font-weight: 500;
+	background: rgba(255, 249, 236, 0.08);
+	color: #b3aa99;
+
+	&--active {
+		background: #009574;
+		color: #fff9ec;
+		font-weight: 600;
+	}
+}
+
+.landing-btn-primary {
+	display: inline-block;
+	background: #009574;
+	color: #fff9ec;
+	padding: 0.9rem 2.25rem;
+	border-radius: 8px;
+	text-decoration: none;
+	font-size: 1rem;
+	font-weight: 600;
+	transition: background 0.2s ease, transform 0.1s ease;
+
+	&:hover {
+		background: #00cea8;
+		color: #1a1610;
+		transform: translateY(-1px);
+	}
+}
+
+.landing-btn-ghost {
+	display: inline-block;
+	border: 1.5px solid rgba(255, 249, 236, 0.2);
+	color: rgba(255, 249, 236, 0.6);
+	padding: 0.9rem 1.75rem;
+	border-radius: 8px;
+	text-decoration: none;
+	font-size: 1rem;
+	transition: border-color 0.2s ease, color 0.2s ease;
+
+	&:hover {
+		border-color: rgba(255, 249, 236, 0.5);
+		color: #fff9ec;
+	}
+}
+
+.landing-features {
+	background: #fff9ec;
+	padding: 5rem 1rem;
+
+	&__heading {
+		text-align: center;
+		color: #4d4637;
+		font-weight: 300;
+		font-size: 2rem;
+		margin-bottom: 3rem;
+	}
+}
+
+.landing-feature-card {
+	background: #fff;
+	border-radius: 12px;
+	padding: 1.75rem;
+	height: 100%;
+	box-shadow: 0 2px 20px rgba(77, 70, 55, 0.07);
+	transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+	&:hover {
+		box-shadow: 0 6px 32px rgba(77, 70, 55, 0.13);
+		transform: translateY(-2px);
+	}
+
+	&__icon {
+		width: 44px;
+		height: 44px;
+		border-radius: 10px;
+		background: #e8faf6;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-bottom: 1.1rem;
+	}
+
+	&__title {
+		color: #4d4637;
+		font-size: 1.05rem;
+		font-weight: 600;
+		margin-bottom: 0.5rem;
+	}
+
+	&__body {
+		color: #7a7264;
+		font-size: 0.9rem;
+		line-height: 1.7;
+		margin: 0;
+	}
+}
+
+.landing-footer {
+	background: #1a1610;
+	color: #b3aa99;
+	font-size: 0.85rem;
+	padding: 1.5rem 2rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 1rem;
+
+	&__link {
+		color: #b3aa99;
+		text-decoration: none;
+		&:hover { color: #fff9ec; }
+	}
+}
+
+@keyframes landing-bounce {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(6px); }
+}
+
 // Focus mode — when the timer is running
 .timer-running {
 	background: #1a1610 !important;

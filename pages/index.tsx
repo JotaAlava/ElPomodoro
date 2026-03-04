@@ -1,9 +1,8 @@
 import React from 'react';
 import { GetStaticProps } from 'next';
-import Layout from '../components/Layout';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { AppContext } from '../components/AppContext';
-import Link from 'next/link';
+import Head from 'next/head';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	faCirclePlay,
@@ -14,133 +13,135 @@ import {
 	faLightbulb
 } from '@fortawesome/free-regular-svg-icons';
 
-export const getStaticProps: GetStaticProps = async (context) => {
-	return {
-		props: {},
-		revalidate: 10
-	};
+export const getStaticProps: GetStaticProps = async () => {
+	return { props: {}, revalidate: 10 };
 };
 
-const LandingPage: React.FC = (props) => {
+const features = [
+	{
+		icon: faCirclePlay,
+		title: 'Just press start',
+		body: 'No planning paralysis. Pick a task, hit start, and commit to 25 minutes. Breaking work into small sessions makes starting feel possible instead of overwhelming.'
+	},
+	{
+		icon: faHourglass2,
+		title: 'Time you can actually see',
+		body: 'Time blindness is real. The timer makes time tangible — you always know exactly where you are in a session, and the break bell pulls you up for air before the afternoon disappears.'
+	},
+	{
+		icon: faLightbulb,
+		title: 'Capture everything, stress about nothing',
+		body: "Dump every task and stray thought into your todo list the moment it hits you. Nothing gets lost to the void. When you start a session, you decide what matters right now."
+	},
+	{
+		icon: faCompass,
+		title: 'Know where your focus actually went',
+		body: 'Contexts tag each session so you can see at a glance whether you spent the week on things that matter. Set weekly minimums per context and watch progress in real time.'
+	},
+	{
+		icon: faHandshake,
+		title: 'Progress you can feel',
+		body: 'ADHD makes effort feel invisible. Session counts make it concrete — on the days that felt unproductive, the numbers often tell a different story.'
+	},
+	{
+		icon: faFaceKissBeam,
+		title: 'Completely free',
+		body: 'No subscription, no upsell, no premium tier. ElPomodoro is free to use. Reach out if you\'re interested in owning it.'
+	}
+];
+
+const LandingPage: React.FC = () => {
 	const { user } = useUser();
 
 	return (
-		<AppContext.Provider
-			value={{
-				user
-			}}
-		>
-			<Layout>
-				<section className="text-center container">
-					<div className="row py-lg-5">
-						<div className="col-lg-6 col-md-8 mx-auto">
-							<h1 className="fw-light">Built for brains that won't slow down.</h1>
-							<p className="lead text-muted">
-								ElPomodoro is a focus tracker designed around how ADHD brains
-								actually work — time-boxed sessions, visible progress, and just
-								enough structure to keep you moving without getting in your way.
-							</p>
-							{user ? (
-								<Link href="/tomato" className="btn btn-primary btn-lg mt-2">
-									Go to your dashboard
-								</Link>
-							) : (
-								<a
-									href="/api/auth/login?returnTo=/tomato"
-									className="btn btn-primary btn-lg mt-2"
-								>
-									Get started — it's free
-								</a>
-							)}
-						</div>
+		<AppContext.Provider value={{ user }}>
+			<Head>
+				<title>ElPomodoro — Focus Timer for ADHD</title>
+				<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+				<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+				<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+				<link rel="manifest" href="/site.webmanifest" />
+			</Head>
+
+			{/* ── Nav ─────────────────────────────────────────────── */}
+			<nav className="landing-nav">
+				<span className="landing-nav__brand">🍅 ElPomodoro</span>
+				<div className="landing-nav__links">
+					{user ? (
+						<a href="/tomato" className="landing-nav__cta">Open app →</a>
+					) : (
+						<>
+							<a href="/api/auth/login?returnTo=/tomato" className="landing-nav__link">Log in</a>
+							<a href="/api/auth/login?returnTo=/tomato" className="landing-nav__cta">Get started free</a>
+						</>
+					)}
+				</div>
+			</nav>
+
+			{/* ── Hero ────────────────────────────────────────────── */}
+			<section className="landing-hero">
+				<div className="landing-hero__modes">
+					<span className="landing-mode landing-mode--active">Work</span>
+					<span className="landing-mode">Short Break</span>
+					<span className="landing-mode">Long Break</span>
+				</div>
+
+				<div className="landing-timer">25:00</div>
+
+				<p className="landing-hero__subtitle">Work Session · 25 minutes</p>
+
+				<h1 className="landing-hero__headline">
+					Built for brains that won't slow down.
+				</h1>
+				<p className="landing-hero__body">
+					Focus tracker designed for ADHD. Time-box your work, track real
+					progress, and build the habit of starting.
+				</p>
+
+				{user ? (
+					<a href="/tomato" className="landing-btn-primary">
+						Open your dashboard →
+					</a>
+				) : (
+					<div className="landing-hero__actions">
+						<a href="/api/auth/login?returnTo=/tomato" className="landing-btn-primary">
+							Get started — it's free
+						</a>
+						<a href="/api/auth/login?returnTo=/tomato" className="landing-btn-ghost">
+							Log in
+						</a>
 					</div>
+				)}
 
-					<div className="container px-4" id="featured-3">
-						<h2 className="pb-2 border-bottom">Why it works for ADHD</h2>
-						<div className="row g-4 py-4 row-cols-1 row-cols-lg-3">
+				<div className="landing-hero__scroll" aria-hidden="true">↓</div>
+			</section>
 
-							<div className="feature col">
-								<div className="feature-icon d-inline-flex align-items-center justify-content-center bg-gradient fs-2 mb-3">
-									<FontAwesomeIcon className="m-1" icon={faCirclePlay} />
+			{/* ── Features ────────────────────────────────────────── */}
+			<section className="landing-features">
+				<div className="container">
+					<h2 className="landing-features__heading">Why it works for ADHD</h2>
+					<div className="row g-4 row-cols-1 row-cols-md-2 row-cols-lg-3">
+						{features.map((f, i) => (
+							<div className="col" key={i}>
+								<div className="landing-feature-card">
+									<div className="landing-feature-card__icon">
+										<FontAwesomeIcon icon={f.icon} style={{ width: 22, color: '#009574' }} />
+									</div>
+									<h3 className="landing-feature-card__title">{f.title}</h3>
+									<p className="landing-feature-card__body">{f.body}</p>
 								</div>
-								<h3 className="fs-2">Just press start</h3>
-								<p>
-									No planning paralysis. Pick a task, hit start, and commit to
-									25 minutes — that's it. Breaking work into small sessions
-									makes starting feel possible instead of overwhelming.
-								</p>
 							</div>
-
-							<div className="feature col">
-								<div className="feature-icon d-inline-flex align-items-center justify-content-center bg-gradient fs-2 mb-3">
-									<FontAwesomeIcon className="m-1" icon={faHourglass2} />
-								</div>
-								<h3 className="fs-2">Time you can actually see</h3>
-								<p>
-									Time blindness is real. The timer makes time tangible — you
-									always know exactly where you are in a session, and the
-									break bell pulls you up for air before the whole afternoon
-									disappears.
-								</p>
-							</div>
-
-							<div className="feature col">
-								<div className="feature-icon d-inline-flex align-items-center justify-content-center bg-gradient fs-2 mb-3">
-									<FontAwesomeIcon className="m-1" icon={faLightbulb} />
-								</div>
-								<h3 className="fs-2">Capture everything, stress about nothing</h3>
-								<p>
-									Dump every task and stray thought into your todo list the
-									moment it hits you. Nothing gets lost to the void. When you
-									start a session, you decide what matters right now — not your
-									past self.
-								</p>
-							</div>
-
-							<div className="feature col">
-								<div className="feature-icon d-inline-flex align-items-center justify-content-center bg-gradient fs-2 mb-3">
-									<FontAwesomeIcon className="m-1" icon={faCompass} />
-								</div>
-								<h3 className="fs-2">Know where your focus actually went</h3>
-								<p>
-									Contexts tag each session so you can see at a glance whether
-									you spent the week on the things that matter. Set weekly
-									minimums per context and watch your progress in real time.
-								</p>
-							</div>
-
-							<div className="feature col">
-								<div className="feature-icon d-inline-flex align-items-center justify-content-center bg-gradient fs-2 mb-3">
-									<FontAwesomeIcon className="m-1" icon={faHandshake} />
-								</div>
-								<h3 className="fs-2">Progress you can feel</h3>
-								<p>
-									ADHD makes effort feel invisible. Session counts make it
-									concrete — on the days that felt unproductive, the numbers
-									often tell a different story. Seeing real output is its own
-									motivation.
-								</p>
-							</div>
-
-							<div className="feature col">
-								<div className="feature-icon d-inline-flex align-items-center justify-content-center bg-gradient fs-2 mb-3">
-									<FontAwesomeIcon className="m-1" icon={faFaceKissBeam} />
-								</div>
-								<h3 className="fs-2">Completely free</h3>
-								<p>
-									No subscription, no upsell, no premium tier. ElPomodoro is
-									free to use.{' '}
-									<Link href="mailto:admin@sophrosyn3.com">
-										Reach out
-									</Link>{' '}
-									if you're interested in owning it.
-								</p>
-							</div>
-
-						</div>
+						))}
 					</div>
-				</section>
-			</Layout>
+				</div>
+			</section>
+
+			{/* ── Footer ──────────────────────────────────────────── */}
+			<footer className="landing-footer">
+				<span>🍅 ElPomodoro</span>
+				<span style={{ opacity: 0.4 }}>·</span>
+				<a href="mailto:admin@sophrosyn3.com" className="landing-footer__link">Contact</a>
+			</footer>
 		</AppContext.Provider>
 	);
 };
