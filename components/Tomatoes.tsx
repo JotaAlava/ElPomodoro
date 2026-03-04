@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Context, Tomato } from '@prisma/client';
-import { faObjectUngroup } from '@fortawesome/free-regular-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IdName } from './Todos';
 
 export interface TomatoesProps {
@@ -19,6 +17,12 @@ interface GroupedTomato {
 	weekContextCount: { [contextId: string]: number };
 	contextCount: { [contextId: string]: number };
 	tomatoes: Array<Tomato>;
+}
+
+interface ContextMenu {
+	tomato: Tomato;
+	x: number;
+	y: number;
 }
 
 const Tomatoes: React.FC<TomatoesProps> = ({
@@ -159,6 +163,8 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 	const [groupedTomatoes, setGroupedTomatoes] = useState<Array<GroupedTomato>>(
 		sort(tomatoes)
 	);
+	const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
+	const menuRef = useRef<HTMLDivElement>(null);
 
 	const reAssignContext = async (tomato: Tomato) => {
 		const response = await fetch(`/api/tomato`, {
@@ -176,6 +182,26 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 	useEffect(() => {
 		setGroupedTomatoes(sort(tomatoes));
 	}, tomatoes);
+
+	useEffect(() => {
+		const close = () => setContextMenu(null);
+		document.addEventListener('click', close);
+		document.addEventListener('contextmenu', close);
+		return () => {
+			document.removeEventListener('click', close);
+			document.removeEventListener('contextmenu', close);
+		};
+	}, []);
+
+	const openContextMenu = (e: React.MouseEvent, tomato: Tomato) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setContextMenu({ tomato, x: e.clientX, y: e.clientY });
+	};
+
+	const sortedContextEntries = Object.entries(contexts).sort(([, a], [, b]) =>
+		a.localeCompare(b)
+	);
 
 	const workGoal = 90;
 	return (
@@ -226,6 +252,7 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 												<div
 													className="list-group-item d-flex flex-wrap"
 													key={idx2}
+													onContextMenu={(e) => openContextMenu(e, tomato)}
 												>
 													<div className="d-flex justify-content-between w-100">
 														<span className="d-flex align-items-center w-75">
@@ -241,21 +268,6 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 														<span className="d-flex align-items-center w-95">
 															{tomato.description}
 														</span>
-														<div>
-															{selectedContext ? (
-																<FontAwesomeIcon
-																	className="m-1"
-																	icon={faObjectUngroup}
-																	role="button"
-																	onClick={() => {
-																		reAssignContext({
-																			...tomato,
-																			contextId: selectedContext.id
-																		});
-																	}}
-																/>
-															) : null}
-														</div>
 													</div>
 												</div>
 											);
@@ -268,6 +280,44 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 				</div>
 			) : (
 				<p className="mt-3 text-center">No tomatoes</p>
+			)}
+
+			{contextMenu && (
+				<div
+					ref={menuRef}
+					className="dropdown-menu show shadow"
+					style={{
+						position: 'fixed',
+						top: contextMenu.y,
+						left: contextMenu.x,
+						zIndex: 9999
+					}}
+					onClick={(e) => e.stopPropagation()}
+				>
+					<h6 className="dropdown-header">Assign Context</h6>
+					{sortedContextEntries.map(([id, name]) => (
+						<button
+							key={id}
+							className="dropdown-item"
+							onClick={() => {
+								reAssignContext({ ...contextMenu.tomato, contextId: id });
+								setContextMenu(null);
+							}}
+						>
+							{name}
+						</button>
+					))}
+					<div className="dropdown-divider" />
+					<button
+						className="dropdown-item text-danger"
+						onClick={() => {
+							reAssignContext({ ...contextMenu.tomato, contextId: null });
+							setContextMenu(null);
+						}}
+					>
+						Unassign
+					</button>
+				</div>
 			)}
 		</div>
 	);
