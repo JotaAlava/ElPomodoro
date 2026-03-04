@@ -61,3 +61,47 @@ svg {
 	font-size: small;
 	padding-bottom: 25px;
 }
+
+// Focus mode — when the timer is running
+.timer-running {
+	background: #1a1610 !important;
+	border-radius: 12px;
+	transition: background 0.4s ease;
+
+	.display-1 {
+		font-size: 9rem !important;
+		letter-spacing: -4px;
+		color: #00cea8 !important;
+		text-shadow: 0 0 40px rgba(0, 206, 168, 0.35);
+		transition: font-size 0.4s ease;
+	}
+
+	.lead {
+		color: #b3aa99 !important;
+		font-size: 1.1rem;
+	}
+
+	.btn-primary {
+		background-color: #00cea8;
+		border-color: #00cea8;
+		color: #1a1610;
+		font-weight: 600;
+	}
+
+	.btn-warning, .btn-secondary {
+		opacity: 0.55;
+	}
+}
+
+// Dim non-essential content during a session
+.focus-dim {
+	opacity: 0.12;
+	pointer-events: none;
+	user-select: none;
+	transition: opacity 0.5s ease;
+}
+
+.focus-dim-soft {
+	opacity: 0.35;
+	transition: opacity 0.5s ease;
+}

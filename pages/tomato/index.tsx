@@ -285,6 +285,7 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 	const [selectedContext, setSelectedContext] = useState<Context>(undefined);
 	const [idNameContexts] = useState<IdName>(toIdName(contexts));
 	const [currentLastFinished, setCurrentLastFinished] = useState<number | null>(lastFinished);
+	const [timerRunning, setTimerRunning] = useState<boolean>(getTimerRunning);
 
 	const onSave = (newTomatoes: Array<Tomato>) => {
 		setTomatoes(newTomatoes);
@@ -298,21 +299,25 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 			}}
 		>
 			<Layout>
-				<TomatoTimer></TomatoTimer>
+				<TomatoTimer onSessionChange={setTimerRunning}></TomatoTimer>
 				<div className="container">
 					<StreakBar streak={streak} lastFinished={currentLastFinished} />
-				<WeeklySummary tomatoes={loadedTomatoes} contexts={contexts} />
+					<div className={timerRunning ? 'focus-dim-soft' : ''}>
+						<WeeklySummary tomatoes={loadedTomatoes} contexts={contexts} />
+					</div>
 					<NewRow
 						field="tomato"
 						onSubmit={onSave}
 						selectedContext={selectedContext}
 						lastTomato={loadedTomatoes[0] ?? null}
 					></NewRow>
-					<ContextPicker
-						contexts={contexts}
-						contextSelected={setSelectedContext}
-					></ContextPicker>
-					<div className="row">
+					<div className={timerRunning ? 'focus-dim-soft' : ''}>
+						<ContextPicker
+							contexts={contexts}
+							contextSelected={setSelectedContext}
+						></ContextPicker>
+					</div>
+					<div className={`row${timerRunning ? ' focus-dim' : ''}`}>
 						<Todo
 							todos={todos}
 							contexts={idNameContexts}

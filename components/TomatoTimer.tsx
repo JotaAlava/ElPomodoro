@@ -30,7 +30,11 @@ const initialState = {
 	overdueCount: 0
 };
 
-const TomatoTimer: React.FC = (props) => {
+export interface TomatoTimerProps {
+	onSessionChange?: (running: boolean) => void;
+}
+
+const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 	const loadCookieState = () => {
 		if (Cookies.get(PomodoroTimer.Cookie)) {
 			return JSON.parse(Cookies.get(PomodoroTimer.Cookie));
@@ -66,8 +70,8 @@ const TomatoTimer: React.FC = (props) => {
 		};
 
 		Cookies.set(PomodoroTimer.Cookie, JSON.stringify(newState));
-
 		setTimerState(newState);
+		props.onSessionChange?.(mode === PomodoroTimer.WorkMode);
 	};
 
 	const resume = () => {
@@ -86,8 +90,8 @@ const TomatoTimer: React.FC = (props) => {
 		};
 
 		Cookies.set(PomodoroTimer.Cookie, JSON.stringify(newState));
-
 		setTimerState(newState);
+		props.onSessionChange?.(timerState.mode === PomodoroTimer.WorkMode);
 	};
 
 	const end = () => {
@@ -98,8 +102,8 @@ const TomatoTimer: React.FC = (props) => {
 		};
 
 		Cookies.set(PomodoroTimer.Cookie, JSON.stringify(newState));
-
 		setTimerState(newState);
+		props.onSessionChange?.(false);
 	};
 
 	const secondsSince = (started) => {
@@ -135,6 +139,7 @@ const TomatoTimer: React.FC = (props) => {
 						};
 						setTimerState(overdueState);
 						Cookies.set(PomodoroTimer.Cookie, JSON.stringify(overdueState));
+						props.onSessionChange?.(false);
 
 						// Re-ring bell every 60s
 						clearBellInterval();
@@ -165,7 +170,12 @@ const TomatoTimer: React.FC = (props) => {
 
 	const isOverdue = !timerState.started && timerState.mode === 'Time is up! Take a break.';
 	const overdueCount = timerState.overdueCount || 0;
-	const jumbotronClass = `jumbotron text-center pb-3${isOverdue && overdueCount >= 2 ? ' border border-danger' : ''}`;
+	const isRunning = !!timerState.started && timerState.mode === PomodoroTimer.WorkMode;
+	const jumbotronClass = [
+		'jumbotron text-center pb-3',
+		isOverdue && overdueCount >= 2 ? 'border border-danger' : '',
+		isRunning ? 'timer-running' : ''
+	].filter(Boolean).join(' ');
 
 	return (
 		<div className={jumbotronClass} style={isOverdue && overdueCount >= 2 ? { animation: 'blink 1s step-start infinite' } : {}}>
