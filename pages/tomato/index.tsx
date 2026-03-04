@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShareFromSquare } from '@fortawesome/free-regular-svg-icons';
-import Layout from '../../components/Layout';
+import AppLayout from '../../components/AppLayout';
 import { AppContext } from '../../components/AppContext';
 import Todo, { IdName } from '../../components/Todos';
 import Tomatoes from '../../components/Tomatoes';
@@ -292,47 +292,60 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 		setCurrentLastFinished(Math.floor(Date.now() / 1000));
 	};
 
+	const todayCount = loadedTomatoes.filter((t) => {
+		const d = new Date((t as any).finished * 1000);
+		const now = new Date();
+		return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+	}).length;
+
+	const currentTask = (loadedTomatoes[0] as any)?.description ?? undefined;
+
 	return (
-		<AppContext.Provider
-			value={{
-				user
-			}}
-		>
-			<Layout>
-				<TomatoTimer onSessionChange={setTimerRunning}></TomatoTimer>
-				<div className="container">
-					<StreakBar streak={streak} lastFinished={currentLastFinished} />
-					<div className={timerRunning ? 'focus-dim-soft' : ''}>
-						<WeeklySummary tomatoes={loadedTomatoes} contexts={contexts} />
-					</div>
-					<NewRow
-						field="tomato"
-						onSubmit={onSave}
-						selectedContext={selectedContext}
-						lastTomato={loadedTomatoes[0] ?? null}
-					></NewRow>
-					<div className={timerRunning ? 'focus-dim-soft' : ''}>
-						<ContextPicker
-							contexts={contexts}
-							contextSelected={setSelectedContext}
-						></ContextPicker>
-					</div>
-					<div className={`row${timerRunning ? ' focus-dim' : ''}`}>
-						<Todo
-							todos={todos}
-							contexts={idNameContexts}
+		<AppContext.Provider value={{ user }}>
+			<AppLayout>
+				{/* ── First fold: timer ── */}
+				<TomatoTimer
+					onSessionChange={setTimerRunning}
+					todayCount={todayCount}
+					currentTask={currentTask}
+				/>
+
+				{/* ── Below fold ── */}
+				<div className="content-fold">
+					<div className="container py-4">
+						<StreakBar streak={streak} lastFinished={currentLastFinished} />
+						<div className={timerRunning ? 'focus-dim-soft' : ''}>
+							<WeeklySummary tomatoes={loadedTomatoes} contexts={contexts} />
+						</div>
+						<NewRow
+							field="tomato"
+							onSubmit={onSave}
 							selectedContext={selectedContext}
-						></Todo>
-						<Tomatoes
-							tomatoes={loadedTomatoes}
-							contexts={idNameContexts}
-							selectedContext={selectedContext}
-							reAssignedContext={onSave}
-							contextGoals={toContextGoals(contexts)}
-						></Tomatoes>
+							lastTomato={loadedTomatoes[0] ?? null}
+						/>
+						<div className={timerRunning ? 'focus-dim-soft' : ''}>
+							<ContextPicker
+								contexts={contexts}
+								contextSelected={setSelectedContext}
+							/>
+						</div>
+						<div className={`row${timerRunning ? ' focus-dim' : ''}`}>
+							<Todo
+								todos={todos}
+								contexts={idNameContexts}
+								selectedContext={selectedContext}
+							/>
+							<Tomatoes
+								tomatoes={loadedTomatoes}
+								contexts={idNameContexts}
+								selectedContext={selectedContext}
+								reAssignedContext={onSave}
+								contextGoals={toContextGoals(contexts)}
+							/>
+						</div>
 					</div>
 				</div>
-			</Layout>
+			</AppLayout>
 		</AppContext.Provider>
 	);
 }

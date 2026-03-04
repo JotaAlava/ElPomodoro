@@ -62,6 +62,304 @@ svg {
 	padding-bottom: 25px;
 }
 
+// ── App layout (sidebar + main) ───────────────────────────────────────────
+
+.app-layout {
+	display: flex;
+	min-height: 100vh;
+}
+
+.app-sidebar {
+	width: 70px;
+	background: #141210;
+	height: 100vh;
+	position: fixed;
+	left: 0;
+	top: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: center;
+	padding: 1.25rem 0;
+	z-index: 100;
+
+	&__top {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.25rem;
+		width: 100%;
+	}
+
+	&__bottom {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		width: 100%;
+	}
+
+	&__logo {
+		font-size: 1.6rem;
+		text-decoration: none;
+		display: block;
+		text-align: center;
+		padding: 0.5rem 0;
+		margin-bottom: 1.25rem;
+	}
+
+	&__nav {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.25rem;
+		width: 100%;
+	}
+
+	&__item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 4px;
+		padding: 0.6rem 0.25rem;
+		border-radius: 10px;
+		color: #4d4637;
+		text-decoration: none;
+		font-size: 0.6rem;
+		width: 58px;
+		text-align: center;
+		transition: color 0.2s ease, background 0.2s ease;
+		border: none;
+		background: transparent;
+		cursor: pointer;
+
+		svg { width: 18px; height: 18px; color: inherit; }
+
+		&:hover {
+			color: #b3aa99;
+			background: rgba(255, 249, 236, 0.05);
+		}
+
+		&--active {
+			color: #00cea8;
+			background: rgba(0, 206, 168, 0.08);
+		}
+	}
+
+	&__avatar {
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		background: #4d4637;
+		color: #fff9ec;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.85rem;
+		font-weight: 600;
+	}
+}
+
+.app-main {
+	margin-left: 70px;
+	flex: 1;
+	min-width: 0;
+}
+
+// ── Timer fold (first 100vh) ───────────────────────────────────────────────
+
+.timer-fold {
+	min-height: 100vh;
+	background: #1a1610;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 3rem 2rem 7rem;
+	position: relative;
+	overflow: hidden;
+	text-align: center;
+
+	&--overdue {
+		.timer-display { color: #da2048; }
+	}
+
+	&__modes {
+		display: flex;
+		gap: 0.5rem;
+		margin-bottom: 2rem;
+	}
+}
+
+.timer-mode {
+	padding: 0.35rem 1.1rem;
+	border-radius: 999px;
+	font-size: 0.8rem;
+	font-weight: 500;
+	background: rgba(255, 249, 236, 0.08);
+	color: #b3aa99;
+	border: none;
+	cursor: pointer;
+	transition: background 0.2s ease, color 0.2s ease;
+
+	&:hover {
+		background: rgba(255, 249, 236, 0.15);
+		color: #fff9ec;
+	}
+
+	&--active {
+		background: #009574;
+		color: #fff9ec;
+		font-weight: 600;
+
+		&:hover { background: #00cea8; color: #1a1610; }
+	}
+}
+
+.timer-task {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	background: rgba(255, 249, 236, 0.06);
+	border: 1px solid rgba(255, 249, 236, 0.12);
+	border-radius: 999px;
+	padding: 0.5rem 1.25rem;
+	margin-bottom: 1.5rem;
+	max-width: 360px;
+
+	&__text {
+		color: #fff9ec;
+		font-size: 0.95rem;
+		flex: 1;
+	}
+
+	&__x {
+		color: #4d4637;
+		font-size: 1.1rem;
+		line-height: 1;
+		cursor: default;
+	}
+}
+
+.timer-display {
+	font-size: clamp(5rem, 14vw, 10rem);
+	font-weight: 700;
+	color: #fff9ec;
+	line-height: 1;
+	letter-spacing: -0.05em;
+	font-variant-numeric: tabular-nums;
+	margin-bottom: 0.75rem;
+	transition: color 0.3s ease;
+}
+
+.timer-session-count {
+	font-size: 0.7rem;
+	font-weight: 600;
+	letter-spacing: 0.15em;
+	text-transform: uppercase;
+	color: #4d4637;
+	margin-bottom: 2rem;
+}
+
+.timer-main-btn {
+	width: 64px;
+	height: 64px;
+	border-radius: 50%;
+	border: 2px solid rgba(255, 249, 236, 0.2);
+	background: transparent;
+	color: #fff9ec;
+	font-size: 1.3rem;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: border-color 0.2s ease, background 0.2s ease, transform 0.1s ease;
+	margin-bottom: 1.25rem;
+
+	&:hover {
+		border-color: rgba(255, 249, 236, 0.6);
+		background: rgba(255, 249, 236, 0.06);
+		transform: scale(1.05);
+	}
+
+	&--active {
+		border-color: #00cea8;
+		color: #00cea8;
+	}
+}
+
+.timer-secondary-actions {
+	display: flex;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.timer-secondary-btn {
+	padding: 0.3rem 0.9rem;
+	background: transparent;
+	border: 1px solid rgba(255, 249, 236, 0.12);
+	border-radius: 999px;
+	color: #4d4637;
+	font-size: 0.78rem;
+	cursor: pointer;
+	transition: border-color 0.2s ease, color 0.2s ease;
+
+	&:hover {
+		border-color: rgba(255, 249, 236, 0.35);
+		color: #b3aa99;
+	}
+}
+
+.timer-wave {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 90px;
+	pointer-events: none;
+
+	&__line {
+		position: absolute;
+		bottom: 0;
+		border-radius: 50% 50% 0 0;
+
+		&--1 {
+			left: -10%;
+			width: 120%;
+			height: 55px;
+			background: rgba(218, 32, 72, 0.3);
+			bottom: -18px;
+		}
+
+		&--2 {
+			left: -5%;
+			width: 110%;
+			height: 38px;
+			background: rgba(218, 32, 72, 0.18);
+			bottom: -28px;
+		}
+	}
+}
+
+// Running state: teal glow pulse on the digits
+.timer-fold.timer-running .timer-display {
+	color: #00cea8;
+	text-shadow: 0 0 50px rgba(0, 206, 168, 0.3);
+	animation: timer-pulse 3s ease-in-out infinite;
+}
+
+@keyframes timer-pulse {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.82; }
+}
+
+// ── Content fold (below the timer) ────────────────────────────────────────
+
+.content-fold {
+	background: #fff9ec;
+	min-height: 60vh;
+}
+
 // ── Landing page ──────────────────────────────────────────────────────────
 
 .landing-nav {
@@ -177,11 +475,24 @@ svg {
 	font-weight: 500;
 	background: rgba(255, 249, 236, 0.08);
 	color: #b3aa99;
+	text-decoration: none;
+	cursor: pointer;
+	transition: background 0.2s ease, color 0.2s ease;
+
+	&:hover {
+		background: rgba(255, 249, 236, 0.18);
+		color: #fff9ec;
+	}
 
 	&--active {
 		background: #009574;
 		color: #fff9ec;
 		font-weight: 600;
+
+		&:hover {
+			background: #00cea8;
+			color: #1a1610;
+		}
 	}
 }
 

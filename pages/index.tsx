@@ -81,9 +81,15 @@ const LandingPage: React.FC = () => {
 			{/* ── Hero ────────────────────────────────────────────── */}
 			<section className="landing-hero">
 				<div className="landing-hero__modes">
-					<span className="landing-mode landing-mode--active">Work</span>
-					<span className="landing-mode">Short Break</span>
-					<span className="landing-mode">Long Break</span>
+					{['Work', 'Short Break', 'Long Break'].map((label, i) => (
+						<a
+							key={i}
+							href={user ? '/tomato' : '/api/auth/login?returnTo=/tomato'}
+							className={`landing-mode${i === 0 ? ' landing-mode--active' : ''}`}
+						>
+							{label}
+						</a>
+					))}
 				</div>
 
 				<div className="landing-timer">25:00</div>

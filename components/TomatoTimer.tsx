@@ -32,6 +32,8 @@ const initialState = {
 
 export interface TomatoTimerProps {
 	onSessionChange?: (running: boolean) => void;
+	todayCount?: number;
+	currentTask?: string;
 }
 
 const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
@@ -170,77 +172,118 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 
 	const isOverdue = !timerState.started && timerState.mode === 'Time is up! Take a break.';
 	const overdueCount = timerState.overdueCount || 0;
-	const isRunning = !!timerState.started && timerState.mode === PomodoroTimer.WorkMode;
-	const jumbotronClass = [
-		'jumbotron text-center pb-3',
-		isOverdue && overdueCount >= 2 ? 'border border-danger' : '',
+	const isRunning = !!timerState.started;
+	const canResume = !isRunning && !isOverdue && !!timerState.time && timerState.time > 0 && timerState.time < (timerState.sessionLength || PomodoroTimer.Work);
+
+	const getActiveMode = (): 'work' | 'short' | 'long' => {
+		if (timerState.mode === PomodoroTimer.BreakMode) {
+			return timerState.sessionLength === PomodoroTimer.ShortBreak ? 'short' : 'long';
+		}
+		return 'work';
+	};
+
+	let mainBtnIcon: string;
+	let mainBtnLabel: string;
+	let mainBtnAction: () => void;
+	if (isRunning) {
+		mainBtnIcon = '⏸'; mainBtnLabel = 'Pause'; mainBtnAction = end;
+	} else if (isOverdue) {
+		mainBtnIcon = '☕'; mainBtnLabel = 'Take a break'; mainBtnAction = () => start(PomodoroTimer.ShortBreak, PomodoroTimer.BreakMode);
+	} else if (canResume) {
+		mainBtnIcon = '▶'; mainBtnLabel = 'Resume'; mainBtnAction = resume;
+	} else {
+		mainBtnIcon = '▶'; mainBtnLabel = 'Start'; mainBtnAction = () => start(PomodoroTimer.Work, PomodoroTimer.WorkMode);
+	}
+
+	const sectionClass = [
+		'timer-fold',
+		isOverdue && overdueCount >= 2 ? 'timer-fold--overdue' : '',
 		isRunning ? 'timer-running' : ''
 	].filter(Boolean).join(' ');
 
+	const activeModeKey = getActiveMode();
+
 	return (
-		<div className={jumbotronClass} style={isOverdue && overdueCount >= 2 ? { animation: 'blink 1s step-start infinite' } : {}}>
-			<style>{`@keyframes blink { 50% { opacity: 0.4; } }`}</style>
+		<section
+			className={sectionClass}
+			style={isOverdue && overdueCount >= 2 ? { animation: 'blink 1s step-start infinite' } : {}}
+		>
+			<style>{`@keyframes blink { 50% { opacity: 0.3; } }`}</style>
 			<Head>
 				<title>{clockify(timerState.time)}</title>
 			</Head>
-			<h1 className="display-1">{clockify(timerState.time)}</h1>
 			<audio id="beep" src={PomodoroTimer.Sound.toString()} preload="auto" />
-			<p className="lead">{timerState.mode}</p>
-			{isOverdue ? (
-				<div>
-					<button
-						type="button"
-						className="btn btn-success me-2"
-						onClick={() => start(PomodoroTimer.ShortBreak, PomodoroTimer.BreakMode)}
-					>
-						Start Break
-					</button>
-					<button
-						type="button"
-						className="btn btn-secondary"
-						onClick={() => start(300, PomodoroTimer.WorkMode)}
-					>
-						5 More Minutes
-					</button>
+
+			{/* Mode tabs — hidden while running to reduce distraction */}
+			{!isRunning && (
+				<div className="timer-fold__modes">
+					{([
+						{ label: 'Work', length: PomodoroTimer.Work, mode: PomodoroTimer.WorkMode, key: 'work' },
+						{ label: 'Short Break', length: PomodoroTimer.ShortBreak, mode: PomodoroTimer.BreakMode, key: 'short' },
+						{ label: 'Long Break', length: PomodoroTimer.LongBreak, mode: PomodoroTimer.BreakMode, key: 'long' },
+					] as const).map(({ label, length, mode, key }) => (
+						<button
+							key={key}
+							className={`timer-mode${activeModeKey === key ? ' timer-mode--active' : ''}`}
+							onClick={() => start(length, mode)}
+						>
+							{label}
+						</button>
+					))}
 				</div>
-			) : (
-				<>
-					<button
-						type="submit"
-						className="btn btn-primary"
-						onClick={() => start(PomodoroTimer.Work, PomodoroTimer.WorkMode)}
-					>
-						Start
-					</button>
-					<button type="submit" className="btn btn-primary ms-2" onClick={end}>
-						Stop
-					</button>
-					<div className="pt-2">
-						<button type="submit" className="btn btn-warning ms-2" onClick={resume}>
-							Resume
-						</button>
-						<button
-							type="submit"
-							className="btn btn-warning ms-2"
-							onClick={() =>
-								start(PomodoroTimer.ShortBreak, PomodoroTimer.BreakMode)
-							}
-						>
-							Short Break
-						</button>
-						<button
-							type="submit"
-							className="btn btn-warning ms-2"
-							onClick={() =>
-								start(PomodoroTimer.LongBreak, PomodoroTimer.BreakMode)
-							}
-						>
-							Long Break
-						</button>
-					</div>
-				</>
 			)}
-		</div>
+
+			{/* Task pill */}
+			{props.currentTask && (
+				<div className="timer-task">
+					<span className="timer-task__text">{props.currentTask}</span>
+					<span className="timer-task__x" aria-hidden="true">×</span>
+				</div>
+			)}
+
+			{/* Timer display */}
+			<div className="timer-display">{clockify(timerState.time)}</div>
+
+			{/* Session count + status */}
+			<div className="timer-session-count">
+				FOCUS 🍅 {props.todayCount ?? 0} / 4
+			</div>
+
+			{/* Main action button */}
+			<button
+				className={`timer-main-btn${isRunning ? ' timer-main-btn--active' : ''}`}
+				onClick={mainBtnAction}
+				aria-label={mainBtnLabel}
+			>
+				{mainBtnIcon}
+			</button>
+
+			{/* Secondary actions */}
+			{!isRunning && (
+				<div className="timer-secondary-actions">
+					{canResume && (
+						<button className="timer-secondary-btn" onClick={resume}>Resume</button>
+					)}
+					{isOverdue ? (
+						<button className="timer-secondary-btn" onClick={() => start(300, PomodoroTimer.WorkMode)}>5 More Minutes</button>
+					) : (
+						<>
+							<button className="timer-secondary-btn" onClick={() => start(PomodoroTimer.ShortBreak, PomodoroTimer.BreakMode)}>Short Break</button>
+							<button className="timer-secondary-btn" onClick={() => start(PomodoroTimer.LongBreak, PomodoroTimer.BreakMode)}>Long Break</button>
+						</>
+					)}
+					{!isOverdue && !canResume && (
+						<button className="timer-secondary-btn" onClick={end}>Stop</button>
+					)}
+				</div>
+			)}
+
+			{/* Wave decoration */}
+			<div className="timer-wave" aria-hidden="true">
+				<div className="timer-wave__line timer-wave__line--1" />
+				<div className="timer-wave__line timer-wave__line--2" />
+			</div>
+		</section>
 	);
 };
 
