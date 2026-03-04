@@ -35,8 +35,8 @@ export default function ContextMain({ user, contexts }) {
 	const [loadedContexts, setLoadedContexts] =
 		useState<Array<Context>>(contexts);
 
-	const onSave = (newTomatoes: Array<Tomato>) => {
-		setLoadedContexts(newTomatoes);
+	const onSave = (newContexts) => {
+		setLoadedContexts(newContexts);
 	};
 
 	const editForm = async (val) => {
@@ -49,7 +49,8 @@ export default function ContextMain({ user, contexts }) {
 			},
 			body: JSON.stringify({
 				...isEdit,
-				description: val.target[0].value
+				description: val.target[0].value,
+				weeklyMinimum: parseInt(val.target[1].value) || 0
 			})
 		});
 
@@ -105,6 +106,13 @@ export default function ContextMain({ user, contexts }) {
 											maxLength={255}
 											required
 											defaultValue={isEdit.description}
+										/>
+										<input
+											type="number"
+											className="form-control"
+											min="0"
+											placeholder="Weekly min"
+											defaultValue={isEdit.weeklyMinimum ?? 0}
 										/>
 
 										<button type="submit" className="btn btn-primary">

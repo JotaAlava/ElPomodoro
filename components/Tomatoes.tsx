@@ -9,12 +9,14 @@ export interface TomatoesProps {
 	contexts: IdName;
 	selectedContext: Context;
 	reAssignedContext: (tomatoes: Array<Tomato>) => void;
+	contextGoals: { [id: string]: number };
 }
 
 interface GroupedTomato {
 	day: string;
 	count: number;
 	weekCount: number;
+	weekContextCount: { [contextId: string]: number };
 	contextCount: { [contextId: string]: number };
 	tomatoes: Array<Tomato>;
 }
@@ -23,7 +25,8 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 	tomatoes,
 	contexts,
 	selectedContext,
-	reAssignedContext
+	reAssignedContext,
+	contextGoals
 }) => {
 	// First day of the week is Sunday. Last is Saturday
 	const getWeekBoundaries = (dayOfWeek) => {
@@ -98,6 +101,7 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 				onGoing = {
 					count: 1,
 					weekCount: 0,
+					weekContextCount: {},
 					day: sortedTomato.finished.toLocaleDateString('en-us', {
 						weekday: 'long',
 						year: 'numeric',
@@ -128,6 +132,7 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 		result.forEach((res) => {
 			const boundaries = getWeekBoundaries(res.day);
 			let weekCount = 0;
+			const weekContextCount: { [contextId: string]: number } = {};
 
 			result.forEach((res2) => {
 				const thisDay = new Date(res2.day);
@@ -138,10 +143,14 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 					thisDay <= boundaries.end
 				) {
 					weekCount = weekCount + res2.count;
+					Object.keys(res2.contextCount).forEach(ctxId => {
+						weekContextCount[ctxId] = (weekContextCount[ctxId] || 0) + res2.contextCount[ctxId];
+					});
 				}
 			});
 
 			res.weekCount = weekCount;
+			res.weekContextCount = weekContextCount;
 		});
 
 		return result;
@@ -197,6 +206,18 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 											return (
 												<span key={idx2} className="badge bg-secondary ms-1">
 													{contexts[key]} : {gt.contextCount[key]}
+												</span>
+											);
+										})}
+										{Object.keys(contextGoals).map((ctxId, idx2) => {
+											const goal = contextGoals[ctxId];
+											const weekCtxCount = gt.weekContextCount[ctxId] || 0;
+											return (
+												<span
+													key={`goal-${idx2}`}
+													className={`badge ms-1 ${weekCtxCount >= goal ? 'bg-success' : 'bg-warning text-dark'}`}
+												>
+													{contexts[ctxId]}: {weekCtxCount}/{goal}
 												</span>
 											);
 										})}

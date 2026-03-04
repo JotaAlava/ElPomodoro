@@ -9,11 +9,13 @@ export interface ContextRequest extends NextApiRequest {
 	body: {
 		id?: string;
 		description: string;
+		weeklyMinimum?: number;
 	};
 }
 
 const schema = yup.object().shape({
-	description: yup.string().required()
+	description: yup.string().required(),
+	weeklyMinimum: yup.number().integer().min(0).optional()
 });
 
 const handler = async (req: ContextRequest, res: NextApiResponse) => {
@@ -27,6 +29,7 @@ const handler = async (req: ContextRequest, res: NextApiResponse) => {
 			await prisma.context.create({
 				data: {
 					description: req.body.description,
+					weeklyMinimum: req.body.weeklyMinimum ?? 0,
 					authorId: user.sub
 				}
 			});
@@ -40,6 +43,7 @@ const handler = async (req: ContextRequest, res: NextApiResponse) => {
 				},
 				data: {
 					description: req.body.description,
+					weeklyMinimum: req.body.weeklyMinimum ?? 0,
 					authorId: user.sub
 				}
 			});

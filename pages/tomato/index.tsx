@@ -49,6 +49,14 @@ const toIdName = (contexts: Array<Context>): { [id: string]: string } => {
 	return result;
 };
 
+const toContextGoals = (contexts: Array<Context>): { [id: string]: number } => {
+	const result = {};
+	contexts.forEach((ctx) => {
+		if (ctx.weeklyMinimum > 0) result[ctx.id] = ctx.weeklyMinimum;
+	});
+	return result;
+};
+
 export default function TomatoMain({ user, tomatoes, todos, contexts }) {
 	const [loadedTomatoes, setTomatoes] = useState<Array<Tomato>>(tomatoes);
 	const [selectedContext, setSelectedContext] = useState<Context>(undefined);
@@ -89,6 +97,7 @@ export default function TomatoMain({ user, tomatoes, todos, contexts }) {
 							contexts={idNameContexts}
 							selectedContext={selectedContext}
 							reAssignedContext={onSave}
+							contextGoals={toContextGoals(contexts)}
 						></Tomatoes>
 					</div>
 				</div>

@@ -9,4 +9,5 @@ export const initalContextValue: AppContextState = {
 	user: undefined
 };
 
-export const AppContext = React.createContext<AppContextState>(initalContextValue);
+export const AppContext =
+	React.createContext<AppContextState>(initalContextValue);

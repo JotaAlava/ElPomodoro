@@ -31,6 +31,9 @@ const ContextsList: React.FC<ContextsListProps> = ({ contexts, edit, del }) => {
 							) : (
 								<span>{context.description}</span>
 							)}
+							{context.weeklyMinimum > 0 && (
+								<span className="badge bg-info ms-2">{context.weeklyMinimum}/wk</span>
+							)}
 						</span>
 						<div>
 							{!ctxToDelete[context.id] ? (

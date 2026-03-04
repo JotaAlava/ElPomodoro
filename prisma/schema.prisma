@@ -15,6 +15,7 @@ datasource db {
 model Context {
   id              String   @id @default(cuid())
   description     String
+  weeklyMinimum   Int      @default(0)
   deleted         Boolean  @default(false)
   tomatos         Tomato[]
   todos           Todo[]
