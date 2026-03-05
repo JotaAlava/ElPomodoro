@@ -30,11 +30,18 @@ const initialState = {
 	overdueCount: 0
 };
 
+interface TodoItem {
+	id: string;
+	description: string;
+	contextName?: string;
+}
+
 export interface TomatoTimerProps {
 	onSessionChange?: (running: boolean) => void;
 	onTimerComplete?: (description: string) => void;
 	todayCount?: number;
-	todos?: Array<{ id: string; description: string }>;
+	todos?: Array<TodoItem>;
+	selectedContextName?: string;
 }
 
 const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
@@ -47,9 +54,13 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 	const [timerState, setTimerState] = useState(
 		loadCookieState() || initialState
 	);
-	const [selectedTodo, setSelectedTodo] = useState<string>('');
+	const [selectedTodo, setSelectedTodo] = useState<TodoItem | null>(null);
+	const [showDropdown, setShowDropdown] = useState(false);
+	const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
 
 	const bellIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+	const triggerRef = useRef<HTMLDivElement>(null);
+	const dropdownRef = useRef<HTMLDivElement>(null);
 
 	const playBell = () => {
 		(document.getElementById('beep') as any)?.play();
@@ -81,7 +92,6 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 	const resume = () => {
 		const subtractSeconds = (date, seconds) => {
 			date.setSeconds(date.getSeconds() - seconds);
-
 			return date;
 		};
 
@@ -144,7 +154,7 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 						setTimerState(overdueState);
 						Cookies.set(PomodoroTimer.Cookie, JSON.stringify(overdueState));
 						props.onSessionChange?.(false);
-						if (selectedTodo) props.onTimerComplete?.(selectedTodo);
+						if (selectedTodo) props.onTimerComplete?.(selectedTodo.description);
 
 						// Re-ring bell every 60s
 						clearBellInterval();
@@ -172,6 +182,34 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 	useEffect(() => {
 		return () => clearBellInterval();
 	}, []);
+
+	// Close dropdown on outside click
+	useEffect(() => {
+		if (!showDropdown) return;
+		const handler = (e: MouseEvent) => {
+			if (
+				dropdownRef.current && !dropdownRef.current.contains(e.target as Node) &&
+				triggerRef.current && !triggerRef.current.contains(e.target as Node)
+			) {
+				setShowDropdown(false);
+			}
+		};
+		document.addEventListener('mousedown', handler);
+		return () => document.removeEventListener('mousedown', handler);
+	}, [showDropdown]);
+
+	const openDropdown = () => {
+		if (triggerRef.current) {
+			const rect = triggerRef.current.getBoundingClientRect();
+			setDropdownPos({ top: rect.bottom + 6, left: rect.left, width: rect.width });
+		}
+		setShowDropdown(true);
+	};
+
+	const selectTodo = (todo: TodoItem) => {
+		setSelectedTodo(todo);
+		setShowDropdown(false);
+	};
 
 	const isOverdue = !timerState.started && timerState.mode === 'Time is up! Take a break.';
 	const overdueCount = timerState.overdueCount || 0;
@@ -217,6 +255,25 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 			</Head>
 			<audio id="beep" src={PomodoroTimer.Sound.toString()} preload="auto" />
 
+			{/* Context band — narrow strip at the very top */}
+			{props.selectedContextName && (
+				<div style={{
+					position: 'absolute',
+					top: 0, left: 0, right: 0,
+					background: '#009574',
+					color: '#fff9ec',
+					fontSize: '0.72rem',
+					fontWeight: 600,
+					letterSpacing: '0.12em',
+					textTransform: 'uppercase',
+					textAlign: 'center',
+					padding: '0.3rem 1rem',
+					zIndex: 10,
+				}}>
+					{props.selectedContextName}
+				</div>
+			)}
+
 			{/* Mode tabs — hidden while running to reduce distraction */}
 			{!isRunning && (
 				<div className="timer-fold__modes">
@@ -238,48 +295,103 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 
 			{/* Todo picker */}
 			{props.todos && props.todos.length > 0 && (
-				<div className="timer-task" style={{ padding: '0.35rem 0.75rem 0.35rem 1.25rem' }}>
-					<select
-						value={selectedTodo}
-						onChange={(e) => setSelectedTodo(e.target.value)}
-						style={{
-							background: 'transparent',
-							border: 'none',
-							color: selectedTodo ? '#fff9ec' : '#4d4637',
-							fontSize: '0.9rem',
-							outline: 'none',
-							flex: 1,
-							cursor: 'pointer',
-							minWidth: 0,
-						}}
+				<>
+					{/* Trigger pill */}
+					<div
+						ref={triggerRef}
+						className="timer-task"
+						onClick={openDropdown}
+						style={{ cursor: 'pointer', userSelect: 'none', minWidth: 240, justifyContent: 'space-between' }}
 					>
-						<option value="" style={{ background: '#1a1610', color: '#4d4637' }}>
-							Select a task…
-						</option>
-						{props.todos.map((t) => (
-							<option key={t.id} value={t.description} style={{ background: '#1a1610', color: '#fff9ec' }}>
-								{t.description}
-							</option>
-						))}
-					</select>
-					{selectedTodo && (
-						<button
-							onClick={() => setSelectedTodo('')}
+						{selectedTodo ? (
+							<>
+								{selectedTodo.contextName && (
+									<span style={{
+										background: 'rgba(0,206,168,0.18)',
+										color: '#00cea8',
+										fontSize: '0.65rem',
+										fontWeight: 700,
+										letterSpacing: '0.08em',
+										textTransform: 'uppercase',
+										borderRadius: 999,
+										padding: '0.1rem 0.55rem',
+										marginRight: '0.6rem',
+										whiteSpace: 'nowrap',
+									}}>
+										{selectedTodo.contextName}
+									</span>
+								)}
+								<span className="timer-task__text" style={{ flex: 1 }}>{selectedTodo.description}</span>
+								<button
+									onClick={(e) => { e.stopPropagation(); setSelectedTodo(null); }}
+									style={{ background: 'none', border: 'none', color: '#4d4637', fontSize: '1.1rem', lineHeight: 1, cursor: 'pointer', padding: '0 0 0 0.5rem' }}
+									aria-label="Clear"
+								>×</button>
+							</>
+						) : (
+							<>
+								<span style={{ color: '#4d4637', fontSize: '0.9rem', flex: 1 }}>Select a task…</span>
+								<span style={{ color: '#4d4637', fontSize: '0.75rem' }}>▾</span>
+							</>
+						)}
+					</div>
+
+					{/* Dropdown — position:fixed to escape overflow:hidden on the section */}
+					{showDropdown && (
+						<div
+							ref={dropdownRef}
 							style={{
-								background: 'none',
-								border: 'none',
-								color: '#4d4637',
-								fontSize: '1.1rem',
-								lineHeight: 1,
-								cursor: 'pointer',
-								padding: '0 0 0 0.5rem',
+								position: 'fixed',
+								top: dropdownPos.top,
+								left: dropdownPos.left,
+								width: Math.max(dropdownPos.width, 280),
+								background: '#1a1610',
+								border: '1px solid rgba(255,249,236,0.12)',
+								borderRadius: 12,
+								zIndex: 9999,
+								maxHeight: 280,
+								overflowY: 'auto',
+								boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
 							}}
-							aria-label="Clear selection"
 						>
-							×
-						</button>
+							{props.todos.map((t) => (
+								<div
+									key={t.id}
+									onClick={() => selectTodo(t)}
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										padding: '0.6rem 1rem',
+										cursor: 'pointer',
+										borderBottom: '1px solid rgba(255,249,236,0.06)',
+										transition: 'background 0.15s ease',
+									}}
+									onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,249,236,0.06)')}
+									onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+								>
+									{t.contextName && (
+										<span style={{
+											background: 'rgba(0,206,168,0.15)',
+											color: '#00cea8',
+											fontSize: '0.65rem',
+											fontWeight: 700,
+											letterSpacing: '0.08em',
+											textTransform: 'uppercase',
+											borderRadius: 999,
+											padding: '0.15rem 0.55rem',
+											marginRight: '0.65rem',
+											whiteSpace: 'nowrap',
+											flexShrink: 0,
+										}}>
+											{t.contextName}
+										</span>
+									)}
+									<span style={{ color: '#fff9ec', fontSize: '0.88rem' }}>{t.description}</span>
+								</div>
+							))}
+						</div>
 					)}
-				</div>
+				</>
 			)}
 
 			{/* Timer display */}

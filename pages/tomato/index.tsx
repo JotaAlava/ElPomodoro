@@ -186,8 +186,12 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 	}).length;
 
 	const pendingTodos = todos
-		.filter((t: any) => !t.completed)
-		.map((t: any) => ({ id: t.id, description: t.description }));
+		.filter((t: any) => !t.completed && (!selectedContext || t.contextId === selectedContext.id))
+		.map((t: any) => ({
+			id: t.id,
+			description: t.description,
+			contextName: t.contextId ? idNameContexts[t.contextId] : undefined,
+		}));
 
 	return (
 		<AppContext.Provider value={{ user }}>
@@ -198,6 +202,7 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 					onTimerComplete={(desc) => setPendingDescription(desc)}
 					todayCount={todayCount}
 					todos={pendingTodos}
+					selectedContextName={selectedContext?.description}
 				/>
 
 				{/* ── Below fold ── */}
