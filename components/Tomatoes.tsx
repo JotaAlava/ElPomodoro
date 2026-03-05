@@ -25,6 +25,19 @@ interface ContextMenu {
 	y: number;
 }
 
+const ctxBadge: React.CSSProperties = {
+	background: 'rgba(0,206,168,0.15)',
+	color: '#00cea8',
+	fontSize: '0.65rem',
+	fontWeight: 700,
+	letterSpacing: '0.08em',
+	textTransform: 'uppercase',
+	borderRadius: 999,
+	padding: '0.15rem 0.55rem',
+	whiteSpace: 'nowrap',
+	display: 'inline-block',
+};
+
 const Tomatoes: React.FC<TomatoesProps> = ({
 	tomatoes,
 	contexts,
@@ -255,10 +268,7 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 												<span>Day: {gt.count}</span>
 												{Object.keys(gt.contextCount).map((key, idx2) => {
 													return (
-														<span
-															key={idx2}
-															className="badge bg-secondary ms-2"
-														>
+														<span key={idx2} style={ctxBadge} className="ms-2">
 															{contexts[key]}: {gt.contextCount[key]}
 														</span>
 													);
@@ -286,11 +296,13 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 												{Object.keys(contextGoals).map((ctxId, idx2) => {
 													const goal = contextGoals[ctxId];
 													const weekCtxCount = gt.weekContextCount[ctxId] || 0;
+													const met = weekCtxCount >= goal;
 													return (
-														<span
-															key={`goal-${idx2}`}
-															className={`badge ms-2 ${weekCtxCount >= goal ? 'bg-success' : 'bg-warning text-dark'}`}
-														>
+														<span key={`goal-${idx2}`} className="ms-2" style={{
+															...ctxBadge,
+															background: met ? 'rgba(0,206,168,0.15)' : 'rgba(241,196,15,0.15)',
+															color: met ? '#00cea8' : '#f1c40f',
+														}}>
 															{contexts[ctxId]}: {weekCtxCount}/{goal}
 														</span>
 													);
@@ -311,9 +323,11 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 																	{tomato.finished.toLocaleTimeString()}
 																</strong>
 															</span>
-															<span className="badge bg-secondary ms-1 h-100">
-																{contexts[tomato.contextId]}
-															</span>
+															{contexts[tomato.contextId] && (
+																<span style={ctxBadge} className="ms-1">
+																	{contexts[tomato.contextId]}
+																</span>
+															)}
 														</div>
 														<div className="d-flex justify-content-between w-100">
 															<span className="d-flex align-items-center w-95">

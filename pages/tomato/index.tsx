@@ -190,6 +190,7 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 		.map((t: any) => ({
 			id: t.id,
 			description: t.description,
+			contextId: t.contextId ?? undefined,
 			contextName: t.contextId ? idNameContexts[t.contextId] : undefined,
 		}));
 
@@ -200,6 +201,7 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 				<TomatoTimer
 					onSessionChange={setTimerRunning}
 					onTimerComplete={(desc) => setPendingDescription(desc)}
+					onTodoSelect={(ctxId) => setSelectedContext(ctxId ? contexts.find((c) => c.id === ctxId) : undefined)}
 					todayCount={todayCount}
 					todos={pendingTodos}
 					selectedContextName={selectedContext?.description}

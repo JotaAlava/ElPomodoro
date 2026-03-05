@@ -33,12 +33,14 @@ const initialState = {
 interface TodoItem {
 	id: string;
 	description: string;
+	contextId?: string;
 	contextName?: string;
 }
 
 export interface TomatoTimerProps {
 	onSessionChange?: (running: boolean) => void;
 	onTimerComplete?: (description: string) => void;
+	onTodoSelect?: (contextId: string | undefined) => void;
 	todayCount?: number;
 	todos?: Array<TodoItem>;
 	selectedContextName?: string;
@@ -209,6 +211,13 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 	const selectTodo = (todo: TodoItem) => {
 		setSelectedTodo(todo);
 		setShowDropdown(false);
+		props.onTodoSelect?.(todo.contextId);
+	};
+
+	const clearTodo = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		setSelectedTodo(null);
+		props.onTodoSelect?.(undefined);
 	};
 
 	const isOverdue = !timerState.started && timerState.mode === 'Time is up! Take a break.';
@@ -269,6 +278,9 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 					textAlign: 'center',
 					padding: '0.3rem 1rem',
 					zIndex: 10,
+					overflow: 'hidden',
+					whiteSpace: 'nowrap',
+					textOverflow: 'ellipsis',
 				}}>
 					{props.selectedContextName}
 				</div>
@@ -323,7 +335,7 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 								)}
 								<span className="timer-task__text" style={{ flex: 1 }}>{selectedTodo.description}</span>
 								<button
-									onClick={(e) => { e.stopPropagation(); setSelectedTodo(null); }}
+									onClick={clearTodo}
 									style={{ background: 'none', border: 'none', color: '#4d4637', fontSize: '1.1rem', lineHeight: 1, cursor: 'pointer', padding: '0 0 0 0.5rem' }}
 									aria-label="Clear"
 								>×</button>

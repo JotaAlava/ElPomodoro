@@ -131,9 +131,22 @@ const Todo: React.FC<TodoProps> = (props) => {
 									</strong>
 								</span>
 							)}
-							<span className="badge bg-secondary ms-1 h-100">
-								{props.contexts[todo.contextId]}
-							</span>
+							{props.contexts[todo.contextId] && (
+								<span className="ms-1" style={{
+									background: 'rgba(0,206,168,0.15)',
+									color: '#00cea8',
+									fontSize: '0.65rem',
+									fontWeight: 700,
+									letterSpacing: '0.08em',
+									textTransform: 'uppercase',
+									borderRadius: 999,
+									padding: '0.15rem 0.55rem',
+									whiteSpace: 'nowrap',
+									display: 'inline-block',
+								}}>
+									{props.contexts[todo.contextId]}
+								</span>
+							)}
 						</div>
 						<div className="d-flex justify-content-between w-100">
 							<span
