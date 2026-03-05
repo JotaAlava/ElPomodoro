@@ -222,6 +222,7 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 							<ContextPicker
 								contexts={contexts}
 								contextSelected={setSelectedContext}
+								selectedContext={selectedContext}
 							/>
 						</div>
 						<div className={`row${timerRunning ? ' focus-dim' : ''}`}>
