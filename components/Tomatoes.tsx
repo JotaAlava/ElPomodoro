@@ -147,8 +147,9 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 					thisDay <= boundaries.end
 				) {
 					weekCount = weekCount + res2.count;
-					Object.keys(res2.contextCount).forEach(ctxId => {
-						weekContextCount[ctxId] = (weekContextCount[ctxId] || 0) + res2.contextCount[ctxId];
+					Object.keys(res2.contextCount).forEach((ctxId) => {
+						weekContextCount[ctxId] =
+							(weekContextCount[ctxId] || 0) + res2.contextCount[ctxId];
 					});
 				}
 			});
@@ -162,7 +163,9 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 
 	const MILESTONES = [10, 25, 50, 100, 250, 500, 1000];
 
-	const computeMilestoneMap = (grouped: Array<GroupedTomato>): Map<number, number> => {
+	const computeMilestoneMap = (
+		grouped: Array<GroupedTomato>
+	): Map<number, number> => {
 		const result = new Map<number, number>();
 		const oldestFirst = [...grouped].reverse();
 		let cumulative = 0;
@@ -170,7 +173,10 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 		oldestFirst.forEach((g, oldestIdx) => {
 			const prevCumulative = cumulative;
 			cumulative += g.count;
-			while (nextMilestoneIdx < MILESTONES.length && cumulative >= MILESTONES[nextMilestoneIdx]) {
+			while (
+				nextMilestoneIdx < MILESTONES.length &&
+				cumulative >= MILESTONES[nextMilestoneIdx]
+			) {
 				const newestFirstIdx = grouped.length - 1 - oldestIdx;
 				result.set(newestFirstIdx, MILESTONES[nextMilestoneIdx]);
 				nextMilestoneIdx++;
@@ -234,83 +240,93 @@ const Tomatoes: React.FC<TomatoesProps> = ({
 					{groupedTomatoes.map((gt, idx) => {
 						return (
 							<React.Fragment key={idx}>
-							{milestoneMap.has(idx) && (
-								<div className="text-center my-2">
-									<span className="badge bg-warning text-dark fs-6 px-3 py-2">
-										🏆 {milestoneMap.get(idx)} Sessions
-									</span>
-								</div>
-							)}
-							<div className="card">
-								<div className="card-body">
-									<h5 className="card-title">{gt.day}</h5>
-									<h6 className="card-subtitle mb-1 text-muted">
-										<div>
-											<span>
-												Week:{' '}
-												<span className={gt.weekCount < workGoal ? 'text-warning' : 'text-success'}>
-													{gt.weekCount}/{workGoal}
-												</span>
-											</span>
-											{Object.keys(contextGoals).map((ctxId, idx2) => {
-												const goal = contextGoals[ctxId];
-												const weekCtxCount = gt.weekContextCount[ctxId] || 0;
-												return (
+								{milestoneMap.has(idx) && (
+									<div className="text-center my-2">
+										<span className="badge bg-warning text-dark fs-6 px-3 py-2">
+											🏆 {milestoneMap.get(idx)} Sessions
+										</span>
+									</div>
+								)}
+								<div className="card">
+									<div className="card-body">
+										<h5 className="card-title">{gt.day}</h5>
+										<h6 className="card-subtitle mb-1 text-muted">
+											<div>
+												<span>Day: {gt.count}</span>
+												{Object.keys(gt.contextCount).map((key, idx2) => {
+													return (
+														<span
+															key={idx2}
+															className="badge bg-secondary ms-2"
+														>
+															{contexts[key]}: {gt.contextCount[key]}
+														</span>
+													);
+												})}
+												{Object.keys(gt.contextCount).length >= 4 && (
+													<span className="badge bg-warning text-dark ms-2">
+														⚡ {Object.keys(gt.contextCount).length} context
+														switches
+													</span>
+												)}
+											</div>
+											<div>
+												<span>
+													Week:{' '}
 													<span
-														key={`goal-${idx2}`}
-														className={`badge ms-2 ${weekCtxCount >= goal ? 'bg-success' : 'bg-warning text-dark'}`}
+														className={
+															gt.weekCount < workGoal
+																? 'text-warning'
+																: 'text-success'
+														}
 													>
-														{contexts[ctxId]}: {weekCtxCount}/{goal}
+														{gt.weekCount}/{workGoal}
 													</span>
-												);
-											})}
-										</div>
-										<div>
-											<span>Day: {gt.count}</span>
-											{Object.keys(gt.contextCount).map((key, idx2) => {
-												return (
-													<span key={idx2} className="badge bg-secondary ms-2">
-														{contexts[key]}: {gt.contextCount[key]}
-													</span>
-												);
-											})}
-											{Object.keys(gt.contextCount).length >= 4 && (
-												<span className="badge bg-warning text-dark ms-2">
-													⚡ {Object.keys(gt.contextCount).length} context switches
 												</span>
-											)}
+												{Object.keys(contextGoals).map((ctxId, idx2) => {
+													const goal = contextGoals[ctxId];
+													const weekCtxCount = gt.weekContextCount[ctxId] || 0;
+													return (
+														<span
+															key={`goal-${idx2}`}
+															className={`badge ms-2 ${weekCtxCount >= goal ? 'bg-success' : 'bg-warning text-dark'}`}
+														>
+															{contexts[ctxId]}: {weekCtxCount}/{goal}
+														</span>
+													);
+												})}
+											</div>
+										</h6>
+										<div className="card-text">
+											{gt.tomatoes.map((tomato, idx2) => {
+												return (
+													<div
+														className="list-group-item d-flex flex-wrap"
+														key={idx2}
+														onContextMenu={(e) => openContextMenu(e, tomato)}
+													>
+														<div className="d-flex justify-content-between w-100">
+															<span className="d-flex align-items-center w-75">
+																<strong>
+																	{tomato.finished.toLocaleTimeString()}
+																</strong>
+															</span>
+															<span className="badge bg-secondary ms-1 h-100">
+																{contexts[tomato.contextId]}
+															</span>
+														</div>
+														<div className="d-flex justify-content-between w-100">
+															<span className="d-flex align-items-center w-95">
+																{tomato.description}
+															</span>
+														</div>
+													</div>
+												);
+											})}
 										</div>
-									</h6>
-									<div className="card-text">
-										{gt.tomatoes.map((tomato, idx2) => {
-											return (
-												<div
-													className="list-group-item d-flex flex-wrap"
-													key={idx2}
-													onContextMenu={(e) => openContextMenu(e, tomato)}
-												>
-													<div className="d-flex justify-content-between w-100">
-														<span className="d-flex align-items-center w-75">
-															<strong>
-																{tomato.finished.toLocaleTimeString()}
-															</strong>
-														</span>
-														<span className="badge bg-secondary ms-1 h-100">
-															{contexts[tomato.contextId]}
-														</span>
-													</div>
-													<div className="d-flex justify-content-between w-100">
-														<span className="d-flex align-items-center w-95">
-															{tomato.description}
-														</span>
-													</div>
-												</div>
-											);
-										})}
 									</div>
 								</div>
-							</div>
-						</React.Fragment>
+							</React.Fragment>
 						);
 					})}
 				</div>
