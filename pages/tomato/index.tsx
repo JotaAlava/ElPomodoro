@@ -206,7 +206,7 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 						<StreakBar streak={streak} lastFinished={currentLastFinished} />
 						<NewRow
 							field="tomato"
-							onSubmit={(result) => { onSave(result); setPendingDescription(undefined); }}
+							onSubmit={(result) => { onSave(result as Array<Tomato>); setPendingDescription(undefined); }}
 							selectedContext={selectedContext}
 							lastTomato={loadedTomatoes[0] ?? null}
 							prefillDescription={pendingDescription}
