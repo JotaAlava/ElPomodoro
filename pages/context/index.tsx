@@ -3,9 +3,8 @@ import { withPageAuthRequired } from '@auth0/nextjs-auth0';
 import { Context, PrismaClient, Tomato } from '@prisma/client';
 import { useState } from 'react';
 import { AppContext } from '../../components/AppContext';
-import Layout from '../../components/Layout';
+import AppLayout from '../../components/AppLayout';
 import NewRow from '../../components/NewRow';
-import TomatoTimer from '../../components/TomatoTimer';
 import ContextsList from '../../components/ContextsList';
 
 export const getServerSideProps = withPageAuthRequired({
@@ -81,8 +80,7 @@ export default function ContextMain({ user, contexts }) {
 				user
 			}}
 		>
-			<Layout>
-				<TomatoTimer></TomatoTimer>
+			<AppLayout>
 				<div className="container">
 					<h1>New Context</h1>
 					{isEdit ? (
@@ -139,7 +137,7 @@ export default function ContextMain({ user, contexts }) {
 						del={deleteContext}
 					></ContextsList>
 				</div>
-			</Layout>
+			</AppLayout>
 		</AppContext.Provider>
 	);
 }
