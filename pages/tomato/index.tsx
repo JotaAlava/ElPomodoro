@@ -177,13 +177,17 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 		setCurrentLastFinished(Math.floor(Date.now() / 1000));
 	};
 
+	const [pendingDescription, setPendingDescription] = useState<string | undefined>(undefined);
+
 	const todayCount = loadedTomatoes.filter((t) => {
 		const d = new Date((t as any).finished * 1000);
 		const now = new Date();
 		return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
 	}).length;
 
-	const currentTask = (loadedTomatoes[0] as any)?.description ?? undefined;
+	const pendingTodos = todos
+		.filter((t: any) => !t.completed)
+		.map((t: any) => ({ id: t.id, description: t.description }));
 
 	return (
 		<AppContext.Provider value={{ user }}>
@@ -191,8 +195,9 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 				{/* ── First fold: timer ── */}
 				<TomatoTimer
 					onSessionChange={setTimerRunning}
+					onTimerComplete={(desc) => setPendingDescription(desc)}
 					todayCount={todayCount}
-					currentTask={currentTask}
+					todos={pendingTodos}
 				/>
 
 				{/* ── Below fold ── */}
@@ -201,9 +206,10 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 						<StreakBar streak={streak} lastFinished={currentLastFinished} />
 						<NewRow
 							field="tomato"
-							onSubmit={onSave}
+							onSubmit={(result) => { onSave(result); setPendingDescription(undefined); }}
 							selectedContext={selectedContext}
 							lastTomato={loadedTomatoes[0] ?? null}
+							prefillDescription={pendingDescription}
 						/>
 						<div className={timerRunning ? 'focus-dim-soft' : ''}>
 							<ContextPicker

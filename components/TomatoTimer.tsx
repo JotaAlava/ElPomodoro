@@ -32,8 +32,9 @@ const initialState = {
 
 export interface TomatoTimerProps {
 	onSessionChange?: (running: boolean) => void;
+	onTimerComplete?: (description: string) => void;
 	todayCount?: number;
-	currentTask?: string;
+	todos?: Array<{ id: string; description: string }>;
 }
 
 const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
@@ -46,6 +47,7 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 	const [timerState, setTimerState] = useState(
 		loadCookieState() || initialState
 	);
+	const [selectedTodo, setSelectedTodo] = useState<string>('');
 
 	const bellIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -142,6 +144,7 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 						setTimerState(overdueState);
 						Cookies.set(PomodoroTimer.Cookie, JSON.stringify(overdueState));
 						props.onSessionChange?.(false);
+						if (selectedTodo) props.onTimerComplete?.(selectedTodo);
 
 						// Re-ring bell every 60s
 						clearBellInterval();
@@ -233,11 +236,49 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 				</div>
 			)}
 
-			{/* Task pill */}
-			{props.currentTask && (
-				<div className="timer-task">
-					<span className="timer-task__text">{props.currentTask}</span>
-					<span className="timer-task__x" aria-hidden="true">×</span>
+			{/* Todo picker */}
+			{props.todos && props.todos.length > 0 && (
+				<div className="timer-task" style={{ padding: '0.35rem 0.75rem 0.35rem 1.25rem' }}>
+					<select
+						value={selectedTodo}
+						onChange={(e) => setSelectedTodo(e.target.value)}
+						style={{
+							background: 'transparent',
+							border: 'none',
+							color: selectedTodo ? '#fff9ec' : '#4d4637',
+							fontSize: '0.9rem',
+							outline: 'none',
+							flex: 1,
+							cursor: 'pointer',
+							minWidth: 0,
+						}}
+					>
+						<option value="" style={{ background: '#1a1610', color: '#4d4637' }}>
+							Select a task…
+						</option>
+						{props.todos.map((t) => (
+							<option key={t.id} value={t.description} style={{ background: '#1a1610', color: '#fff9ec' }}>
+								{t.description}
+							</option>
+						))}
+					</select>
+					{selectedTodo && (
+						<button
+							onClick={() => setSelectedTodo('')}
+							style={{
+								background: 'none',
+								border: 'none',
+								color: '#4d4637',
+								fontSize: '1.1rem',
+								lineHeight: 1,
+								cursor: 'pointer',
+								padding: '0 0 0 0.5rem',
+							}}
+							aria-label="Clear selection"
+						>
+							×
+						</button>
+					)}
 				</div>
 			)}
 

@@ -3,7 +3,11 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHourglass2, faCompass, faChartBar } from '@fortawesome/free-regular-svg-icons';
+import {
+	faHourglass2,
+	faCompass,
+	faChartBar
+} from '@fortawesome/free-regular-svg-icons';
 
 interface AppLayoutProps {
 	children: ReactNode;
@@ -17,15 +21,31 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 	return (
 		<div className="app-layout">
 			<Head>
-				<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-				<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-				<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+				<link
+					rel="apple-touch-icon"
+					sizes="180x180"
+					href="/apple-touch-icon.png"
+				/>
+				<link
+					rel="icon"
+					type="image/png"
+					sizes="32x32"
+					href="/favicon-32x32.png"
+				/>
+				<link
+					rel="icon"
+					type="image/png"
+					sizes="16x16"
+					href="/favicon-16x16.png"
+				/>
 				<link rel="manifest" href="/site.webmanifest" />
 			</Head>
 
 			<aside className="app-sidebar">
 				<div className="app-sidebar__top">
-					<a href="/" className="app-sidebar__logo">🍅</a>
+					<a href="/" className="app-sidebar__logo">
+						🍅
+					</a>
 					<nav className="app-sidebar__nav">
 						<a
 							href="/tomato"
@@ -39,7 +59,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 							className={`app-sidebar__item${isActive('/context') ? ' app-sidebar__item--active' : ''}`}
 						>
 							<FontAwesomeIcon icon={faCompass} />
-							<span>Focus</span>
+							<span>Contexts</span>
 						</a>
 						<a
 							href="/dashboard"
@@ -52,7 +72,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 				</div>
 				<div className="app-sidebar__bottom">
 					{user && (
-						<a href="/api/auth/logout" className="app-sidebar__item app-sidebar__item--user">
+						<a
+							href="/api/auth/logout"
+							className="app-sidebar__item app-sidebar__item--user"
+						>
 							<div className="app-sidebar__avatar">
 								{(user.name || user.email || '?')[0].toUpperCase()}
 							</div>
@@ -62,9 +85,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 				</div>
 			</aside>
 
-			<main className="app-main">
-				{children}
-			</main>
+			<main className="app-main">{children}</main>
 		</div>
 	);
 };

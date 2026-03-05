@@ -22,6 +22,7 @@ export interface NewRowProps {
 	selectedContext?: Context;
 	field: string;
 	lastTomato?: Tomato | null;
+	prefillDescription?: string;
 }
 
 const NewRow: React.FC<NewRowProps> = (props) => {
@@ -40,6 +41,13 @@ const NewRow: React.FC<NewRowProps> = (props) => {
 	useEffect(() => {
 		setRecentDescs(getRecentDescs());
 	}, []);
+
+	useEffect(() => {
+		if (props.prefillDescription && inputRef.current) {
+			inputRef.current.value = props.prefillDescription;
+			inputRef.current.focus();
+		}
+	}, [props.prefillDescription]);
 
 	const prefillFromLast = () => {
 		if (!props.lastTomato) return;
