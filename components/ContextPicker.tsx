@@ -5,11 +5,13 @@ import Router from 'next/router';
 export interface ContextPickerProps {
 	contexts: Array<Context>;
 	contextSelected: React.Dispatch<React.SetStateAction<Context>>;
+	selectedContext?: Context;
 }
 
 const ContextPicker: React.FC<ContextPickerProps> = ({
 	contexts,
-	contextSelected
+	contextSelected,
+	selectedContext,
 }) => {
 	const selectionChanged = (val) => {
 		const element = val.target.value;
@@ -17,11 +19,8 @@ const ContextPicker: React.FC<ContextPickerProps> = ({
 		if (element === '-2') {
 			Router.push('/context');
 		} else {
-			const selectedContext = contexts.find((ctx) => {
-				return ctx.id === element;
-			});
-
-			contextSelected(selectedContext);
+			const ctx = contexts.find((ctx) => ctx.id === element);
+			contextSelected(ctx);
 		}
 	};
 
@@ -31,7 +30,7 @@ const ContextPicker: React.FC<ContextPickerProps> = ({
 				<select
 					className="form-select"
 					aria-label="Default select example"
-					defaultValue={'-1'}
+					value={selectedContext?.id ?? '-1'}
 					onChange={selectionChanged}
 				>
 					<option key={-2} value="-2">
