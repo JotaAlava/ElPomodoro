@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Cookies from 'js-cookie';
 import AppLayout from '../../components/AppLayout';
 import { AppContext } from '../../components/AppContext';
@@ -82,6 +82,21 @@ const toIdName = (contexts: Array<Context>): { [id: string]: string } => {
 	});
 
 	return result;
+};
+
+const sortContextsByRecentUse = (contexts: Array<Context>, tomatoes: Array<any>): Array<Context> => {
+	const lastUsed: { [id: string]: number } = {};
+	tomatoes.forEach((t) => {
+		if (t.contextId && (!lastUsed[t.contextId] || t.finished > lastUsed[t.contextId])) {
+			lastUsed[t.contextId] = t.finished;
+		}
+	});
+	return [...contexts].sort((a, b) => {
+		const aTime = lastUsed[a.id] ?? 0;
+		const bTime = lastUsed[b.id] ?? 0;
+		if (aTime !== bTime) return bTime - aTime;
+		return a.description.localeCompare(b.description);
+	});
 };
 
 const toContextGoals = (contexts: Array<Context>): { [id: string]: number } => {
@@ -168,6 +183,7 @@ const StreakBar: React.FC<{ streak: number; lastFinished: number | null }> = ({
 export default function TomatoMain({ user, tomatoes, todos, contexts, streak, lastFinished }) {
 	const [loadedTomatoes, setTomatoes] = useState<Array<Tomato>>(tomatoes);
 	const [selectedContext, setSelectedContext] = useState<Context>(undefined);
+	const sortedContexts = useMemo(() => sortContextsByRecentUse(contexts, loadedTomatoes), [contexts, loadedTomatoes]);
 	const [idNameContexts] = useState<IdName>(toIdName(contexts));
 	const [currentLastFinished, setCurrentLastFinished] = useState<number | null>(lastFinished);
 	const [timerRunning, setTimerRunning] = useState<boolean>(getTimerRunning);
@@ -220,7 +236,7 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 						/>
 						<div className={timerRunning ? 'focus-dim-soft' : ''}>
 							<ContextPicker
-								contexts={contexts}
+								contexts={sortedContexts}
 								contextSelected={setSelectedContext}
 								selectedContext={selectedContext}
 							/>
