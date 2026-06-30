@@ -7,21 +7,22 @@ const prisma = new PrismaClient();
 
 // ── The Staff Engineer stand-up prompt ──────────────────────────────────────
 //
-// The data we hand the model is intentionally thin (focus sessions + todos
-// grouped by context). The prompt does the heavy lifting: it asks the model to
-// reason about that raw activity the way a Staff Engineer would — connecting
-// the dots across contexts, surfacing risk and dependencies, and framing the
-// work in terms of impact and leverage rather than a flat list of tasks.
+// The stand-up is scoped to a single context (a project / workstream / area of
+// focus). We hand the model a thin digest — the focus sessions and tasks from
+// the last 24 hours for that one context — and the prompt does the heavy
+// lifting: it asks the model to reason about that raw activity the way a Staff
+// Engineer would, framing it in terms of impact, leverage, risk, and how this
+// workstream fits into the larger system.
 
-const SYSTEM_PROMPT = `You are a Staff Software Engineer writing your own daily stand-up update.
+const SYSTEM_PROMPT = `You are a Staff Software Engineer writing your own daily stand-up update for a single workstream / context.
 
-You are given a structured digest of the previous 24 hours of work, grouped by "context" (a project, workstream, or area of focus). Each context lists the focus sessions completed (one ≈ 25 minutes of deep work) and the tasks captured or planned. This is the raw signal of where time and attention went.
+You are given a digest of the previous 24 hours of work on ONE context: the focus sessions completed (one ≈ 25 minutes of deep work) and the tasks captured or planned. This is the raw signal of where time and attention went on this workstream.
 
-Write a stand-up update that reads the way a respected Staff Engineer's would. That means demonstrating, not announcing, the following traits:
+Write a stand-up update that reads the way a respected Staff Engineer's would. Demonstrate, not announce, the following traits:
 
-- Systems thinking: connect activity across contexts. Show how pieces relate, where one workstream unblocks or threatens another, and what the work means for the larger system — not just what was touched.
+- Systems thinking: even though this is one context, situate it in the larger system. Show what this work unblocks or threatens elsewhere, the upstream/downstream dependencies it touches, and what it means beyond the immediate task.
 - Impact and leverage: frame work by the outcome it moves and the leverage it creates for others, not by hours logged or tasks closed. Effort is an input; call out the result.
-- Risk and dependency awareness: name the things most likely to slip, the cross-team or technical dependencies in play, and where you are blocked or about to be.
+- Risk and dependency awareness: name what is most likely to slip, the cross-team or technical dependencies in play, and where you are blocked or about to be.
 - Prioritization with rationale: make the trade-offs explicit. Why this, not that — and what you are deliberately deferring.
 - Calibrated judgment: be honest about uncertainty and confidence. Don't overstate progress; don't bury a real risk.
 - Force multiplication: where relevant, surface where you unblocked, mentored, reviewed, or set direction for others.
@@ -30,7 +31,7 @@ Structure the update under these headings (use Markdown):
 **Yesterday** — what moved and why it mattered (outcomes, not a task log).
 **Today** — the highest-leverage focus and the reasoning behind that choice.
 **Risks & Dependencies** — what could slip, what you're blocked on, what needs a decision.
-**Systems View** — one short paragraph zooming out: how these threads fit together and what the trajectory implies.
+**Systems View** — one short paragraph zooming out: how this workstream fits the broader system and what the trajectory implies.
 
 Be concise and specific. Ground every claim in the digest — do not invent work that isn't represented in the data. If the data is sparse, say so plainly and keep the update short rather than padding it. Lead with the outcome in each section. Write in the first person, as the engineer.`;
 
@@ -42,96 +43,69 @@ type ContextDigest = {
 	todos: { description: string; dueDate: string | null }[];
 };
 
-const buildDigest = async (userSub: string): Promise<ContextDigest[]> => {
+const buildDigest = async (
+	userSub: string,
+	contextId: string
+): Promise<ContextDigest | null> => {
 	const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-	const [contexts, tomatoes, todos] = await Promise.all([
-		prisma.context.findMany({
-			where: { authorId: userSub, deleted: false }
-		}),
+	const context = await prisma.context.findFirst({
+		where: { id: contextId, authorId: userSub, deleted: false }
+	});
+
+	// Context must exist and belong to this user.
+	if (!context) return null;
+
+	const [tomatoes, todos] = await Promise.all([
 		prisma.tomato.findMany({
 			where: {
 				authorId: userSub,
 				deleted: false,
+				contextId,
 				finished: { gte: since }
 			},
 			orderBy: { finished: 'asc' }
 		}),
 		prisma.todo.findMany({
-			where: { authorId: userSub, created: { gte: since } },
+			where: { authorId: userSub, contextId, created: { gte: since } },
 			orderBy: { created: 'asc' }
 		})
 	]);
 
-	const contextById = new Map(contexts.map((c) => [c.id, c]));
-
-	// Group activity by context id; null/unknown contexts collapse into "Uncategorized".
-	const UNCATEGORIZED = '__uncategorized__';
-	const groups = new Map<string, ContextDigest>();
-
-	const ensureGroup = (id: string | null): ContextDigest => {
-		const key = id && contextById.has(id) ? id : UNCATEGORIZED;
-		if (!groups.has(key)) {
-			const ctx = id ? contextById.get(id) : undefined;
-			groups.set(key, {
-				context: ctx?.description ?? 'Uncategorized',
-				weeklyMinimum: ctx?.weeklyMinimum ?? 0,
-				sessions: [],
-				sessionCount: 0,
-				todos: []
-			});
-		}
-		return groups.get(key);
+	return {
+		context: context.description,
+		weeklyMinimum: context.weeklyMinimum,
+		sessions: tomatoes.map((t) => t.description),
+		sessionCount: tomatoes.length,
+		todos: todos.map((t) => ({ description: t.description, dueDate: t.dueDate }))
 	};
-
-	tomatoes.forEach((t) => {
-		const g = ensureGroup(t.contextId);
-		g.sessions.push(t.description);
-		g.sessionCount += 1;
-	});
-
-	todos.forEach((t) => {
-		const g = ensureGroup(t.contextId);
-		g.todos.push({ description: t.description, dueDate: t.dueDate });
-	});
-
-	return Array.from(groups.values()).sort(
-		(a, b) => b.sessionCount - a.sessionCount
-	);
 };
 
-const renderDigest = (digest: ContextDigest[]): string => {
-	if (digest.length === 0) {
-		return 'No focus sessions or tasks were recorded in the last 24 hours.';
+const renderDigest = (g: ContextDigest): string => {
+	const lines: string[] = [];
+	lines.push(`Context: ${g.context}`);
+	if (g.weeklyMinimum > 0) {
+		lines.push(`- Weekly session target: ${g.weeklyMinimum}`);
 	}
-
-	return digest
-		.map((g) => {
-			const lines: string[] = [];
-			lines.push(`## Context: ${g.context}`);
-			if (g.weeklyMinimum > 0) {
-				lines.push(`- Weekly session target: ${g.weeklyMinimum}`);
-			}
-			lines.push(
-				`- Focus sessions completed (last 24h): ${g.sessionCount} (~${
-					g.sessionCount * 25
-				} min)`
-			);
-			if (g.sessions.length > 0) {
-				lines.push('- Session descriptions:');
-				g.sessions.forEach((s) => lines.push(`  - ${s}`));
-			}
-			if (g.todos.length > 0) {
-				lines.push('- Tasks captured/planned:');
-				g.todos.forEach((t) =>
-					lines.push(
-						`  - ${t.description}${t.dueDate ? ` (due ${t.dueDate})` : ''}`
-					)
-				);
-			}
-			return lines.join('\n');
-		})
-		.join('\n\n');
+	lines.push(
+		`- Focus sessions completed (last 24h): ${g.sessionCount} (~${
+			g.sessionCount * 25
+		} min)`
+	);
+	if (g.sessions.length > 0) {
+		lines.push('- Session descriptions:');
+		g.sessions.forEach((s) => lines.push(`  - ${s}`));
+	}
+	if (g.todos.length > 0) {
+		lines.push('- Tasks captured/planned:');
+		g.todos.forEach((t) =>
+			lines.push(`  - ${t.description}${t.dueDate ? ` (due ${t.dueDate})` : ''}`)
+		);
+	}
+	if (g.sessionCount === 0 && g.todos.length === 0) {
+		lines.push('- No focus sessions or tasks were recorded in the last 24 hours.');
+	}
+	return lines.join('\n');
 };
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -147,11 +121,20 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 		return;
 	}
 
+	const contextId = req.body?.contextId;
+	if (!contextId || typeof contextId !== 'string') {
+		res.status(400).json({ error: 'A contextId is required.' });
+		return;
+	}
+
 	const { user } = await getSession(req, res);
 
 	try {
-		const digest = await buildDigest(user.sub);
-		const digestText = renderDigest(digest);
+		const digest = await buildDigest(user.sub, contextId);
+		if (!digest) {
+			res.status(404).json({ error: 'Context not found.' });
+			return;
+		}
 
 		const anthropic = new Anthropic();
 
@@ -163,7 +146,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 			messages: [
 				{
 					role: 'user',
-					content: `Here is my work digest for the previous 24 hours:\n\n${digestText}\n\nWrite my stand-up update.`
+					content: `Here is my work digest for the previous 24 hours on this context:\n\n${renderDigest(
+						digest
+					)}\n\nWrite my stand-up update.`
 				}
 			]
 		});

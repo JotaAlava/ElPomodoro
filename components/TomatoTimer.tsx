@@ -44,6 +44,9 @@ export interface TomatoTimerProps {
 	todayCount?: number;
 	todos?: Array<TodoItem>;
 	selectedContextName?: string;
+	onGenerateStandup?: () => void;
+	standupDisabled?: boolean;
+	standupLoading?: boolean;
 }
 
 const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
@@ -302,6 +305,23 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 							{label}
 						</button>
 					))}
+					<button
+						className="timer-mode"
+						onClick={() => props.onGenerateStandup?.()}
+						disabled={props.standupDisabled || props.standupLoading}
+						title={
+							props.standupDisabled
+								? 'Select a context to generate a stand-up'
+								: 'Generate a stand-up for the selected context'
+						}
+						style={
+							props.standupDisabled || props.standupLoading
+								? { opacity: 0.45, cursor: 'not-allowed' }
+								: {}
+						}
+					>
+						{props.standupLoading ? 'Generating…' : 'Stand-up'}
+					</button>
 				</div>
 			)}
 

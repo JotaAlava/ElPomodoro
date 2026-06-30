@@ -11,6 +11,7 @@ import { Context, PrismaClient, Tomato } from '@prisma/client';
 import TomatoService from '../../services/tomatoService';
 import { getSession, withPageAuthRequired } from '@auth0/nextjs-auth0';
 import { loadTodos } from '../../services/todoService';
+import ReactMarkdown from 'react-markdown';
 
 const toDateKey = (d: Date) =>
 	`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -195,6 +196,51 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 
 	const [pendingDescription, setPendingDescription] = useState<string | undefined>(undefined);
 
+	// ── Generate Stand-up (scoped to the selected context) ──────────────────
+	const [standup, setStandup] = useState<string>('');
+	const [standupLoading, setStandupLoading] = useState(false);
+	const [standupError, setStandupError] = useState<string>('');
+	const [showStandup, setShowStandup] = useState(false);
+
+	const generateStandup = async () => {
+		if (!selectedContext) return;
+		setShowStandup(true);
+		setStandupLoading(true);
+		setStandupError('');
+		setStandup('');
+		try {
+			const response = await fetch('/api/standup', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ contextId: selectedContext.id })
+			});
+
+			// The server may return a non-JSON body (e.g. a platform error page),
+			// so read text first and parse defensively rather than calling .json()
+			// blindly — that's what produced "Unexpected token 'A'... is not valid JSON".
+			const text = await response.text();
+			let result: any = {};
+			try {
+				result = text ? JSON.parse(text) : {};
+			} catch {
+				throw new Error(
+					response.ok ? 'Unexpected response from server.' : text.slice(0, 200)
+				);
+			}
+
+			if (!response.ok) {
+				throw new Error(result.error || 'Failed to generate stand-up.');
+			}
+			setStandup(result.standup);
+		} catch (err) {
+			setStandupError(
+				err instanceof Error ? err.message : 'Failed to generate stand-up.'
+			);
+		} finally {
+			setStandupLoading(false);
+		}
+	};
+
 	const todayCount = loadedTomatoes.filter((t) => {
 		const d = new Date((t as any).finished * 1000);
 		const now = new Date();
@@ -221,7 +267,89 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 					todayCount={todayCount}
 					todos={pendingTodos}
 					selectedContextName={selectedContext?.description}
+					onGenerateStandup={generateStandup}
+					standupDisabled={!selectedContext}
+					standupLoading={standupLoading}
 				/>
+
+				{showStandup && (
+					<div
+						onClick={() => setShowStandup(false)}
+						style={{
+							position: 'fixed',
+							inset: 0,
+							background: 'rgba(0,0,0,0.6)',
+							zIndex: 10000,
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							padding: '1rem'
+						}}
+					>
+						<div
+							onClick={(e) => e.stopPropagation()}
+							style={{
+								background: '#1a1610',
+								color: '#fff9ec',
+								border: '1px solid rgba(255,249,236,0.12)',
+								borderRadius: 12,
+								maxWidth: 720,
+								width: '100%',
+								maxHeight: '80vh',
+								overflowY: 'auto',
+								padding: '1.5rem 1.75rem',
+								boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
+							}}
+						>
+							<div className="d-flex align-items-center justify-content-between mb-3">
+								<h5 style={{ margin: 0, fontWeight: 600 }}>
+									Stand-up · {selectedContext?.description}
+								</h5>
+								<button
+									onClick={() => setShowStandup(false)}
+									style={{
+										background: 'none',
+										border: 'none',
+										color: '#b3aa99',
+										fontSize: '1.4rem',
+										lineHeight: 1,
+										cursor: 'pointer'
+									}}
+									aria-label="Close"
+								>
+									×
+								</button>
+							</div>
+
+							{standupLoading ? (
+								<p style={{ color: '#b3aa99', margin: 0 }}>
+									Generating your stand-up…
+								</p>
+							) : standupError ? (
+								<p style={{ color: '#da2048', margin: 0 }}>{standupError}</p>
+							) : (
+								<>
+									<div style={{ fontSize: '0.92rem', lineHeight: 1.6 }}>
+										<ReactMarkdown>{standup}</ReactMarkdown>
+									</div>
+									<button
+										className="btn btn-sm mt-3"
+										onClick={() => navigator.clipboard.writeText(standup)}
+										style={{
+											background: 'transparent',
+											border: '1px solid rgba(255,249,236,0.12)',
+											color: '#b3aa99',
+											borderRadius: 8,
+											fontSize: '0.8rem'
+										}}
+									>
+										Copy
+									</button>
+								</>
+							)}
+						</div>
+					</div>
+				)}
 
 				{/* ── Below fold ── */}
 				<div className="content-fold">

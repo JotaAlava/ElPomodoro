@@ -17,7 +17,6 @@ import {
 } from 'recharts';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShareFromSquare } from '@fortawesome/free-regular-svg-icons';
-import ReactMarkdown from 'react-markdown';
 
 // ── Colour palette ─────────────────────────────────────────────────────────
 
@@ -270,35 +269,6 @@ export default function Dashboard({ user, tomatoes, contexts }) {
 		setTimeout(() => setCopiedConfirm(false), 1500);
 	};
 
-	// ── Generate Stand-up ──────────────────────────────────────────────────
-	const [standup, setStandup] = React.useState<string>('');
-	const [standupLoading, setStandupLoading] = React.useState(false);
-	const [standupError, setStandupError] = React.useState<string>('');
-
-	const generateStandup = async () => {
-		setStandupLoading(true);
-		setStandupError('');
-		setStandup('');
-		try {
-			const response = await fetch('/api/standup', { method: 'POST' });
-			const result = await response.json();
-			if (!response.ok) {
-				throw new Error(result.error || 'Failed to generate stand-up.');
-			}
-			setStandup(result.standup);
-		} catch (err) {
-			setStandupError(
-				err instanceof Error ? err.message : 'Failed to generate stand-up.'
-			);
-		} finally {
-			setStandupLoading(false);
-		}
-	};
-
-	const copyStandup = () => {
-		navigator.clipboard.writeText(standup);
-	};
-
 	// Bar colour for weekly trends
 	const trendBarColor = (count: number) =>
 		count >= WORK_GOAL ? C.teal : count >= 45 ? C.yellow : C.red;
@@ -369,97 +339,27 @@ export default function Dashboard({ user, tomatoes, contexts }) {
 								)}
 							</p>
 						</div>
-						<div className="d-flex gap-2 mt-1">
-							<button
-								className="btn btn-sm"
-								onClick={copyProgress}
-								style={{
-									background: 'transparent',
-									border: `1px solid ${C.border}`,
-									color: C.muted,
-									borderRadius: 8,
-									fontSize: '0.8rem',
-								}}
-							>
-								{copiedConfirm ? (
-									'Copied!'
-								) : (
-									<>
-										<FontAwesomeIcon icon={faShareFromSquare} className="me-1" />
-										Share
-									</>
-								)}
-							</button>
-							<button
-								className="btn btn-sm"
-								onClick={generateStandup}
-								disabled={standupLoading}
-								style={{
-									background: C.teal,
-									border: `1px solid ${C.teal}`,
-									color: C.bg,
-									borderRadius: 8,
-									fontSize: '0.8rem',
-									fontWeight: 600,
-									opacity: standupLoading ? 0.6 : 1,
-								}}
-							>
-								{standupLoading ? 'Generating…' : 'Generate Stand-up'}
-							</button>
-						</div>
-					</div>
-
-					{/* ── Generate Stand-up output ──────────────────────────────── */}
-					{(standup || standupError) && (
-						<div
-							className="p-3 mb-3 mt-3"
+						<button
+							className="btn btn-sm mt-1"
+							onClick={copyProgress}
 							style={{
-								background: C.card,
+								background: 'transparent',
 								border: `1px solid ${C.border}`,
-								borderRadius: 12,
+								color: C.muted,
+								borderRadius: 8,
+								fontSize: '0.8rem',
 							}}
 						>
-							<div className="d-flex align-items-center justify-content-between mb-2">
-								<h6 style={{ color: C.text, fontWeight: 600, margin: 0 }}>
-									Stand-up
-								</h6>
-								{standup && (
-									<button
-										className="btn btn-sm"
-										onClick={copyStandup}
-										style={{
-											background: 'transparent',
-											border: `1px solid ${C.border}`,
-											color: C.muted,
-											borderRadius: 8,
-											fontSize: '0.75rem',
-										}}
-									>
-										<FontAwesomeIcon
-											icon={faShareFromSquare}
-											className="me-1"
-										/>
-										Copy
-									</button>
-								)}
-							</div>
-							{standupError ? (
-								<p style={{ color: C.red, fontSize: '0.85rem', margin: 0 }}>
-									{standupError}
-								</p>
+							{copiedConfirm ? (
+								'Copied!'
 							) : (
-								<div
-									style={{
-										color: C.text,
-										fontSize: '0.9rem',
-										lineHeight: 1.6,
-									}}
-								>
-									<ReactMarkdown>{standup}</ReactMarkdown>
-								</div>
+								<>
+									<FontAwesomeIcon icon={faShareFromSquare} className="me-1" />
+									Share
+								</>
 							)}
-						</div>
-					)}
+						</button>
+					</div>
 
 					{/* ── Daily Overview chart ──────────────────────────────────── */}
 					<Card title="Daily Overview" subtitle="Sessions per day — past 30 days" className="mb-3 mt-3">
