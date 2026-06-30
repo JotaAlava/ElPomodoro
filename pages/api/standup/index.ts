@@ -6,9 +6,10 @@ import Anthropic from '@anthropic-ai/sdk';
 const prisma = new PrismaClient();
 
 // Vercel serverless functions default to a short timeout (~10s); an Opus 4.8
-// call overruns it and surfaces as FUNCTION_INVOCATION_TIMEOUT. Raise the cap.
-// 60s is the max on Vercel's Hobby plan (Pro allows up to 300).
-export const config = { maxDuration: 60 };
+// call overruns it and surfaces as FUNCTION_INVOCATION_TIMEOUT. The cap is
+// raised in vercel.json (the `functions` entry), which works on this Next
+// version. `export const config.maxDuration` is ignored before Next 13.5, so
+// vercel.json is the source of truth here. 60s is the Hobby-plan max.
 
 // ── The Staff Engineer stand-up prompt ──────────────────────────────────────
 //
