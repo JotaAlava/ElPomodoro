@@ -5,6 +5,11 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const prisma = new PrismaClient();
 
+// Vercel serverless functions default to a short timeout (~10s); an Opus 4.8
+// call overruns it and surfaces as FUNCTION_INVOCATION_TIMEOUT. Raise the cap.
+// 60s is the max on Vercel's Hobby plan (Pro allows up to 300).
+export const config = { maxDuration: 60 };
+
 // ── The Staff Engineer stand-up prompt ──────────────────────────────────────
 //
 // The stand-up is scoped to a single context (a project / workstream / area of
@@ -140,8 +145,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
 		const message = await anthropic.messages.create({
 			model: 'claude-opus-4-8',
-			max_tokens: 4096,
+			// A stand-up is short; cap output and keep effort low to stay well
+			// inside the serverless timeout.
+			max_tokens: 2048,
 			thinking: { type: 'adaptive' },
+			output_config: { effort: 'low' },
 			system: SYSTEM_PROMPT,
 			messages: [
 				{
