@@ -241,6 +241,48 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 		}
 	};
 
+	// ── Generate Pay-Raise case (scoped to the selected context) ────────────
+	const [raise, setRaise] = useState<string>('');
+	const [raiseLoading, setRaiseLoading] = useState(false);
+	const [raiseError, setRaiseError] = useState<string>('');
+	const [showRaise, setShowRaise] = useState(false);
+
+	const generateRaise = async () => {
+		if (!selectedContext) return;
+		setShowRaise(true);
+		setRaiseLoading(true);
+		setRaiseError('');
+		setRaise('');
+		try {
+			const response = await fetch('/api/raise', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ contextId: selectedContext.id })
+			});
+
+			const text = await response.text();
+			let result: any = {};
+			try {
+				result = text ? JSON.parse(text) : {};
+			} catch {
+				throw new Error(
+					response.ok ? 'Unexpected response from server.' : text.slice(0, 200)
+				);
+			}
+
+			if (!response.ok) {
+				throw new Error(result.error || 'Failed to generate pay-raise case.');
+			}
+			setRaise(result.raise);
+		} catch (err) {
+			setRaiseError(
+				err instanceof Error ? err.message : 'Failed to generate pay-raise case.'
+			);
+		} finally {
+			setRaiseLoading(false);
+		}
+	};
+
 	const todayCount = loadedTomatoes.filter((t) => {
 		const d = new Date((t as any).finished * 1000);
 		const now = new Date();
@@ -270,7 +312,89 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 					onGenerateStandup={generateStandup}
 					standupDisabled={!selectedContext}
 					standupLoading={standupLoading}
+					onGenerateRaise={generateRaise}
+					raiseDisabled={!selectedContext}
+					raiseLoading={raiseLoading}
 				/>
+
+				{showRaise && (
+					<div
+						onClick={() => setShowRaise(false)}
+						style={{
+							position: 'fixed',
+							inset: 0,
+							background: 'rgba(0,0,0,0.6)',
+							zIndex: 10000,
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							padding: '1rem'
+						}}
+					>
+						<div
+							onClick={(e) => e.stopPropagation()}
+							style={{
+								background: '#1a1610',
+								color: '#fff9ec',
+								border: '1px solid rgba(255,249,236,0.12)',
+								borderRadius: 12,
+								maxWidth: 720,
+								width: '100%',
+								maxHeight: '80vh',
+								overflowY: 'auto',
+								padding: '1.5rem 1.75rem',
+								boxShadow: '0 8px 32px rgba(0,0,0,0.5)'
+							}}
+						>
+							<div className="d-flex align-items-center justify-content-between mb-3">
+								<h5 style={{ margin: 0, fontWeight: 600 }}>
+									Pay Raise · {selectedContext?.description}
+								</h5>
+								<button
+									onClick={() => setShowRaise(false)}
+									style={{
+										background: 'none',
+										border: 'none',
+										color: '#b3aa99',
+										fontSize: '1.4rem',
+										lineHeight: 1,
+										cursor: 'pointer'
+									}}
+									aria-label="Close"
+								>
+									×
+								</button>
+							</div>
+
+							{raiseLoading ? (
+								<p style={{ color: '#b3aa99', margin: 0 }}>
+									Building your pay-raise case…
+								</p>
+							) : raiseError ? (
+								<p style={{ color: '#da2048', margin: 0 }}>{raiseError}</p>
+							) : (
+								<>
+									<div style={{ fontSize: '0.92rem', lineHeight: 1.6 }}>
+										<ReactMarkdown>{raise}</ReactMarkdown>
+									</div>
+									<button
+										className="btn btn-sm mt-3"
+										onClick={() => navigator.clipboard.writeText(raise)}
+										style={{
+											background: 'transparent',
+											border: '1px solid rgba(255,249,236,0.12)',
+											color: '#b3aa99',
+											borderRadius: 8,
+											fontSize: '0.8rem'
+										}}
+									>
+										Copy
+									</button>
+								</>
+							)}
+						</div>
+					</div>
+				)}
 
 				{showStandup && (
 					<div

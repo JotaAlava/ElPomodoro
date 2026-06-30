@@ -47,6 +47,9 @@ export interface TomatoTimerProps {
 	onGenerateStandup?: () => void;
 	standupDisabled?: boolean;
 	standupLoading?: boolean;
+	onGenerateRaise?: () => void;
+	raiseDisabled?: boolean;
+	raiseLoading?: boolean;
 }
 
 const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
@@ -321,6 +324,23 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 						}
 					>
 						{props.standupLoading ? 'Generating…' : 'Stand-up'}
+					</button>
+					<button
+						className="timer-mode"
+						onClick={() => props.onGenerateRaise?.()}
+						disabled={props.raiseDisabled || props.raiseLoading}
+						title={
+							props.raiseDisabled
+								? 'Select a context to generate a pay-raise case'
+								: 'Generate a pay-raise case for the selected context'
+						}
+						style={
+							props.raiseDisabled || props.raiseLoading
+								? { opacity: 0.45, cursor: 'not-allowed' }
+								: {}
+						}
+					>
+						{props.raiseLoading ? 'Generating…' : 'Pay Raise'}
 					</button>
 				</div>
 			)}
