@@ -324,9 +324,8 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 			)}
 
 			{/* Mode tabs — hidden while running to reduce distraction */}
-			{!isRunning && (
-				<div className="timer-fold__modes">
-					{([
+			<div className="timer-fold__modes">
+					{!isRunning && ([
 						{ label: 'Work', length: PomodoroTimer.Work, mode: PomodoroTimer.WorkMode, key: 'work' },
 						{ label: 'Short Break', length: PomodoroTimer.ShortBreak, mode: PomodoroTimer.BreakMode, key: 'short' },
 						{ label: 'Long Break', length: PomodoroTimer.LongBreak, mode: PomodoroTimer.BreakMode, key: 'long' },
@@ -360,7 +359,6 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 							: 'AI Insights ▾'}
 					</button>
 				</div>
-			)}
 
 			{/* AI Insights menu — position:fixed to escape overflow:hidden */}
 			{showAiMenu && (
