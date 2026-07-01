@@ -310,10 +310,9 @@ export default function TomatoMain({ user, tomatoes, todos, contexts, streak, la
 					todos={pendingTodos}
 					selectedContextName={selectedContext?.description}
 					onGenerateStandup={generateStandup}
-					standupDisabled={!selectedContext}
-					standupLoading={standupLoading}
 					onGenerateRaise={generateRaise}
-					raiseDisabled={!selectedContext}
+					aiDisabled={!selectedContext}
+					standupLoading={standupLoading}
 					raiseLoading={raiseLoading}
 				/>
 

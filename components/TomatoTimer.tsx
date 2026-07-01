@@ -45,10 +45,9 @@ export interface TomatoTimerProps {
 	todos?: Array<TodoItem>;
 	selectedContextName?: string;
 	onGenerateStandup?: () => void;
-	standupDisabled?: boolean;
-	standupLoading?: boolean;
 	onGenerateRaise?: () => void;
-	raiseDisabled?: boolean;
+	aiDisabled?: boolean;
+	standupLoading?: boolean;
 	raiseLoading?: boolean;
 }
 
@@ -65,10 +64,14 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 	const [selectedTodo, setSelectedTodo] = useState<TodoItem | null>(null);
 	const [showDropdown, setShowDropdown] = useState(false);
 	const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
+	const [showAiMenu, setShowAiMenu] = useState(false);
+	const [aiMenuPos, setAiMenuPos] = useState({ top: 0, left: 0, width: 0 });
 
 	const bellIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 	const triggerRef = useRef<HTMLDivElement>(null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
+	const aiTriggerRef = useRef<HTMLButtonElement>(null);
+	const aiMenuRef = useRef<HTMLDivElement>(null);
 
 	const playBell = () => {
 		(document.getElementById('beep') as any)?.play();
@@ -214,6 +217,34 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 		setShowDropdown(true);
 	};
 
+	// Close the AI Insights menu on outside click
+	useEffect(() => {
+		if (!showAiMenu) return;
+		const handler = (e: MouseEvent) => {
+			if (
+				aiMenuRef.current && !aiMenuRef.current.contains(e.target as Node) &&
+				aiTriggerRef.current && !aiTriggerRef.current.contains(e.target as Node)
+			) {
+				setShowAiMenu(false);
+			}
+		};
+		document.addEventListener('mousedown', handler);
+		return () => document.removeEventListener('mousedown', handler);
+	}, [showAiMenu]);
+
+	const toggleAiMenu = () => {
+		if (!showAiMenu && aiTriggerRef.current) {
+			const rect = aiTriggerRef.current.getBoundingClientRect();
+			setAiMenuPos({ top: rect.bottom + 6, left: rect.left, width: rect.width });
+		}
+		setShowAiMenu((v) => !v);
+	};
+
+	const runAiOption = (fn?: () => void) => {
+		setShowAiMenu(false);
+		fn?.();
+	};
+
 	const selectTodo = (todo: TodoItem) => {
 		setSelectedTodo(todo);
 		setShowDropdown(false);
@@ -309,39 +340,66 @@ const TomatoTimer: React.FC<TomatoTimerProps> = (props) => {
 						</button>
 					))}
 					<button
-						className="timer-mode"
-						onClick={() => props.onGenerateStandup?.()}
-						disabled={props.standupDisabled || props.standupLoading}
+						ref={aiTriggerRef}
+						className={`timer-mode${showAiMenu ? ' timer-mode--active' : ''}`}
+						onClick={toggleAiMenu}
+						disabled={props.aiDisabled || props.standupLoading || props.raiseLoading}
 						title={
-							props.standupDisabled
-								? 'Select a context to generate a stand-up'
-								: 'Generate a stand-up for the selected context'
+							props.aiDisabled
+								? 'Select a context to use AI Insights'
+								: 'AI Insights for the selected context'
 						}
 						style={
-							props.standupDisabled || props.standupLoading
+							props.aiDisabled || props.standupLoading || props.raiseLoading
 								? { opacity: 0.45, cursor: 'not-allowed' }
 								: {}
 						}
 					>
-						{props.standupLoading ? 'Generating…' : 'Stand-up'}
+						{props.standupLoading || props.raiseLoading
+							? 'Generating…'
+							: 'AI Insights ▾'}
 					</button>
-					<button
-						className="timer-mode"
-						onClick={() => props.onGenerateRaise?.()}
-						disabled={props.raiseDisabled || props.raiseLoading}
-						title={
-							props.raiseDisabled
-								? 'Select a context to generate a pay-raise case'
-								: 'Generate a pay-raise case for the selected context'
-						}
-						style={
-							props.raiseDisabled || props.raiseLoading
-								? { opacity: 0.45, cursor: 'not-allowed' }
-								: {}
-						}
-					>
-						{props.raiseLoading ? 'Generating…' : 'Pay Raise'}
-					</button>
+				</div>
+			)}
+
+			{/* AI Insights menu — position:fixed to escape overflow:hidden */}
+			{showAiMenu && (
+				<div
+					ref={aiMenuRef}
+					style={{
+						position: 'fixed',
+						top: aiMenuPos.top,
+						left: aiMenuPos.left,
+						width: Math.max(aiMenuPos.width, 180),
+						background: '#1a1610',
+						border: '1px solid rgba(255,249,236,0.12)',
+						borderRadius: 12,
+						zIndex: 9999,
+						overflow: 'hidden',
+						boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+					}}
+				>
+					{[
+						{ label: 'Stand-up', fn: props.onGenerateStandup },
+						{ label: 'Pay Raise', fn: props.onGenerateRaise },
+					].map(({ label, fn }) => (
+						<div
+							key={label}
+							onClick={() => runAiOption(fn)}
+							style={{
+								padding: '0.6rem 1rem',
+								cursor: 'pointer',
+								color: '#fff9ec',
+								fontSize: '0.88rem',
+								borderBottom: '1px solid rgba(255,249,236,0.06)',
+								transition: 'background 0.15s ease',
+							}}
+							onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,249,236,0.06)')}
+							onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+						>
+							{label}
+						</div>
+					))}
 				</div>
 			)}
 
